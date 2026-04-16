@@ -20,4 +20,8 @@ export class SodiumCryptoEngine implements CryptoEngine {
   generateSalt(): Uint8Array {
     return this.provider.randomBytes(this.provider.constants.saltLength);
   }
+
+  generateNonce(): Uint8Array {
+    return this.provider.randomBytes(this.provider.constants.nonceLength);
+  }
 }
