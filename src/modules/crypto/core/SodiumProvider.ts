@@ -6,5 +6,6 @@ export interface SodiumProvider {
   randomBytes: (n: number) => Uint8Array;
   constants: {
     readonly saltLength: number;
+    readonly nonceLength: number;
   };
 }
