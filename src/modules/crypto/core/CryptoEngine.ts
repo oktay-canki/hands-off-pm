@@ -7,4 +7,5 @@ export interface CryptoEngine {
     key: DerivedKey,
   ): Promise<EncryptedPayload>;
   decrypt<T>(data: EncryptedPayload, key: DerivedKey): Promise<T>;
+  generateSalt(): Uint8Array;
 }
