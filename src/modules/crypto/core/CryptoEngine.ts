@@ -1,12 +1,13 @@
-import { DerivedKey } from '@/modules/crypto/core/DerivedKey';
 import { EncryptedPayload } from '@/modules/crypto/core/EncryptedPayload';
+import { MasterKey } from '@/modules/crypto/core/Key';
 
 export interface CryptoEngine {
   encrypt<T extends object>(
     data: T,
-    key: DerivedKey,
+    key: Uint8Array,
   ): Promise<EncryptedPayload>;
-  decrypt<T>(data: EncryptedPayload, key: DerivedKey): Promise<T>;
+  decrypt<T>(data: EncryptedPayload, key: Uint8Array): Promise<T>;
   generateSalt(): Uint8Array;
   generateNonce(): Uint8Array;
+  deriveMasterKey(password: string, salt: Uint8Array): Promise<MasterKey>;
 }
