@@ -17,7 +17,7 @@ Function: Argon2id
 
 ### Parameters
 
-Time cost: 3
+Time cost: 2
 Memory cost: 64 MB
 Parallelism: 1
 Output: 32 bytes
