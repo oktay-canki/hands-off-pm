@@ -1,7 +1,14 @@
 import { CryptoEngine } from '@/modules/crypto/core/CryptoEngine';
 import { EncryptedPayload } from '@/modules/crypto/core/EncryptedPayload';
 import { SodiumProvider } from '@/modules/crypto/core/SodiumProvider';
-import { KEY_PURPOSE, withKeyBrand } from '@/modules/crypto/core/Key';
+import {
+  KDF_CONTEXTS,
+  KEY_PURPOSE,
+  KeyBrand,
+  MasterKey,
+  SubKeyPurpose,
+  withKeyBrand,
+} from '@/modules/crypto/core/Key';
 
 export class SodiumCryptoEngine implements CryptoEngine {
   constructor(private provider: SodiumProvider) {}
@@ -36,5 +43,22 @@ export class SodiumCryptoEngine implements CryptoEngine {
     });
 
     return withKeyBrand(rawMasterKey, KEY_PURPOSE.MASTER);
+  }
+
+  deriveSubKey<T extends SubKeyPurpose>(
+    masterKey: MasterKey,
+    purpose: T,
+    subKeyId: number,
+  ): KeyBrand<T> {
+    const context = KDF_CONTEXTS[purpose];
+
+    const subKey = this.provider.deriveFromKey({
+      length: this.provider.kdf.subKeyLength,
+      key: masterKey,
+      subKeyId,
+      context,
+    });
+
+    return withKeyBrand(subKey, purpose);
   }
 }

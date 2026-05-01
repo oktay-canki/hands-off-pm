@@ -24,6 +24,9 @@ export function createSodiumProvider(sodium: Sodium): SodiumProvider {
         algorithm,
       );
     },
+    deriveFromKey: ({ length, subKeyId, context, key }) => {
+      return sodium.crypto_kdf_derive_from_key(length, subKeyId, context, key);
+    },
     constants: CRYPTO_CONFIG.constants,
     kdf: CRYPTO_CONFIG.kdf,
   };

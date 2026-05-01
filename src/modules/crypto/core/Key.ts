@@ -1,10 +1,23 @@
 export const KEY_PURPOSE = {
   MASTER: 'master-key',
+  ENTRY: 'entry',
+  VAULT: 'vault',
+  EXPORT: 'export',
+  SYNC: 'sync',
 } as const;
 
 export type KeyPurpose = (typeof KEY_PURPOSE)[keyof typeof KEY_PURPOSE];
 
-type KeyBrand<T extends KeyPurpose> = Uint8Array & {
+export type SubKeyPurpose = Exclude<KeyPurpose, typeof KEY_PURPOSE.MASTER>;
+
+export const KDF_CONTEXTS: Record<SubKeyPurpose, string> = {
+  entry: 'ENTRY___',
+  vault: 'VAULT___',
+  export: 'EXPORT__',
+  sync: 'SYNC____',
+};
+
+export type KeyBrand<T extends KeyPurpose> = Uint8Array & {
   readonly __keyBrand: T;
 };
 
@@ -17,3 +30,7 @@ export function withKeyBrand<T extends KeyPurpose>(
 }
 
 export type MasterKey = KeyBrand<typeof KEY_PURPOSE.MASTER>;
+export type EntryKey = KeyBrand<typeof KEY_PURPOSE.ENTRY>;
+export type VaultKey = KeyBrand<typeof KEY_PURPOSE.VAULT>;
+export type ExportKey = KeyBrand<typeof KEY_PURPOSE.EXPORT>;
+export type SyncKey = KeyBrand<typeof KEY_PURPOSE.SYNC>;
