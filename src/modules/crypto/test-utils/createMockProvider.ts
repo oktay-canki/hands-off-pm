@@ -1,5 +1,6 @@
 import type { SodiumProvider } from '@/modules/crypto/core/SodiumProvider';
 import { MasterKeyPayload } from '@/modules/crypto/core/MasterKeyPayload';
+import { SubKeyPayload } from '@/modules/crypto/core/SubKeyPayload';
 
 const DEFAULT_CONSTANTS = {
   saltLength: 16,
@@ -8,6 +9,7 @@ const DEFAULT_CONSTANTS = {
 
 const DEFAULT_KDF = {
   masterKeyLength: 32,
+  subKeyLength: 32,
   opsLimit: 2,
   memLimit: 67108864,
   algorithm: 2,
@@ -26,6 +28,7 @@ export function createMockProvider(
   const base: SodiumProvider = {
     randomBytes: (n: number) => new Uint8Array(n),
     pwhash: (payload: MasterKeyPayload) => new Uint8Array(payload.outputSize),
+    deriveFromKey: (payload: SubKeyPayload) => new Uint8Array(payload.length),
     constants: DEFAULT_CONSTANTS,
     kdf: DEFAULT_KDF,
   };
