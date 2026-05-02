@@ -6,22 +6,32 @@ import {
   KEY_PURPOSE,
   KeyBrand,
   MasterKey,
+  SubKey,
   SubKeyPurpose,
   withKeyBrand,
 } from '@/modules/crypto/core/Key';
+import { Plaintext } from '@/modules/crypto/core/Branding';
+import { asPlaintext } from '@/modules/crypto/utils/asPlaintext';
+import { asCiphertext } from '@/modules/crypto/utils/asCiphertext';
 
 export class SodiumCryptoEngine implements CryptoEngine {
   constructor(private provider: SodiumProvider) {}
 
-  async encrypt<T extends object>(
-    data: T,
-    key: Uint8Array,
-  ): Promise<EncryptedPayload> {
-    return {} as EncryptedPayload;
+  encrypt(plaintext: Plaintext, key: SubKey): EncryptedPayload {
+    const nonce = this.generateNonce();
+    const ciphertext = this.provider.encrypt(plaintext, key, nonce);
+
+    return {
+      ciphertext: asCiphertext(ciphertext),
+      nonce,
+      version: 1, // TODO: implement actual crypto versioning
+    };
   }
 
-  async decrypt<T>(data: EncryptedPayload, key: Uint8Array): Promise<T> {
-    return {} as T;
+  decrypt({ ciphertext, nonce }: EncryptedPayload, key: SubKey): Plaintext {
+    const plaintext = this.provider.decrypt(ciphertext, key, nonce);
+
+    return asPlaintext(plaintext);
   }
 
   generateSalt(): Uint8Array {

@@ -9,6 +9,19 @@ export interface SodiumProvider {
   pwhash: (payload: MasterKeyPayload) => Uint8Array;
   deriveFromKey: (payload: SubKeyPayload) => Uint8Array;
 
+  encrypt(
+    plaintext: Uint8Array,
+    key: Uint8Array,
+    nonce: Uint8Array,
+    aad?: Uint8Array,
+  ): Uint8Array;
+  decrypt(
+    ciphertext: Uint8Array,
+    key: Uint8Array,
+    nonce: Uint8Array,
+    aad?: Uint8Array,
+  ): Uint8Array;
+
   readonly constants: {
     saltLength: number;
     nonceLength: number;
