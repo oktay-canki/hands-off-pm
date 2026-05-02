@@ -29,6 +29,8 @@ export function withKeyBrand<T extends KeyPurpose>(
   return bytes as KeyBrand<T>;
 }
 
+export type SubKey = KeyBrand<SubKeyPurpose>;
+
 export type MasterKey = KeyBrand<typeof KEY_PURPOSE.MASTER>;
 export type EntryKey = KeyBrand<typeof KEY_PURPOSE.ENTRY>;
 export type VaultKey = KeyBrand<typeof KEY_PURPOSE.VAULT>;
