@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createMockProvider } from '@/modules/crypto/test-utils/createMockProvider';
-import { SodiumCryptoEngine } from '@/modules/crypto/engines/SodiumCryptoEngine';
+import { createMockProvider } from '@/modules/crypto/tests/test-utils/createMockProvider';
+import { SodiumCryptoEngine } from '@/modules/crypto/SodiumCryptoEngine';
 
 describe('CryptoEngine.deriveMasterKey', () => {
   it('calls pwhash with correct parameters', async () => {

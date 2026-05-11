@@ -1,8 +1,16 @@
-import { CRYPTO_CONFIG } from '@/modules/crypto/config/crypto.config';
+import {
+  CryptoConfig,
+  getCurrentCryptoConfig,
+} from '@/modules/crypto/crypto.config';
 import { Sodium, SodiumProvider } from '@/modules/crypto/core/SodiumProvider';
 import { MasterKeyPayload } from '@/modules/crypto/core/MasterKeyPayload';
 
-export function createSodiumProvider(sodium: Sodium): SodiumProvider {
+export function createSodiumProvider(
+  sodium: Sodium,
+  config?: CryptoConfig,
+): SodiumProvider {
+  const cryptoConfig = config ?? getCurrentCryptoConfig();
+
   return {
     randomBytes: (n: number): Uint8Array => {
       return sodium.randombytes_buf(n);
@@ -45,7 +53,7 @@ export function createSodiumProvider(sodium: Sodium): SodiumProvider {
         key,
       );
     },
-    constants: CRYPTO_CONFIG.constants,
-    kdf: CRYPTO_CONFIG.kdf,
+    constants: cryptoConfig.constants,
+    kdf: cryptoConfig.kdf,
   };
 }

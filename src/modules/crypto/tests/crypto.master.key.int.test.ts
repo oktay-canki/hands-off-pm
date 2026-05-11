@@ -1,12 +1,17 @@
 import { createServices } from '@/lib/bootstrap';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CRYPTO_CONFIG } from '../config/crypto.config';
+import {
+  CryptoConfig,
+  getCurrentCryptoConfig,
+} from '@/modules/crypto/crypto.config';
 
 describe('SodiumCryptoEngine.deriveMasterKey(integration)', () => {
   let crypto: Awaited<ReturnType<typeof createServices>>['crypto'];
+  let cryptoConfig: CryptoConfig;
 
   beforeEach(async () => {
     ({ crypto } = await createServices());
+    cryptoConfig = getCurrentCryptoConfig();
   });
 
   it('returns correct key length', async () => {
@@ -15,7 +20,7 @@ describe('SodiumCryptoEngine.deriveMasterKey(integration)', () => {
       new Uint8Array(16).fill(1),
     );
 
-    expect(key.length).toBe(CRYPTO_CONFIG.kdf.masterKeyLength);
+    expect(key.length).toBe(cryptoConfig.kdf.masterKeyLength);
   });
 
   it('derives the same key for same password and salt', async () => {
