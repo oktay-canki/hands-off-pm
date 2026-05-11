@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { SodiumCryptoEngine } from '@/modules/crypto/engines/SodiumCryptoEngine';
-import { createMockProvider } from '@/modules/crypto/test-utils/createMockProvider';
+import { SodiumCryptoEngine } from '@/modules/crypto/SodiumCryptoEngine';
+import { createMockProvider } from '@/modules/crypto/tests/test-utils/createMockProvider';
 
 describe('SodiumCryptoEngine.generateNonce', () => {
   it('should return Uint8Array', () => {

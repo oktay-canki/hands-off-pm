@@ -1,4 +1,4 @@
-import { SodiumCryptoEngine } from '@/modules/crypto/engines/SodiumCryptoEngine';
+import { SodiumCryptoEngine } from '@/modules/crypto/SodiumCryptoEngine';
 import { Vault } from '@/modules/vault/Vault';
 import { initSodium } from '@/lib/sodium';
 import { createSodiumProvider } from '@/modules/crypto/bootstrap/createSodiumProvider';

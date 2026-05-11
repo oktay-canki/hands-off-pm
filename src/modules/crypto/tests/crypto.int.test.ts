@@ -1,9 +1,16 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { SodiumCryptoEngine } from '@/modules/crypto/engines/SodiumCryptoEngine';
+import { SodiumCryptoEngine } from '@/modules/crypto/SodiumCryptoEngine';
 import { createServices } from '@/lib/bootstrap';
 import { Plaintext } from '@/modules/crypto/core/Branding';
 import { asPlaintext } from '@/modules/crypto/utils/asPlaintext';
 import { KEY_PURPOSE, SubKey, withKeyBrand } from '@/modules/crypto/core/Key';
+import {
+  CRYPTO_CONFIG,
+  CryptoVersion,
+  getCryptoConfig,
+} from '@/modules/crypto/crypto.config';
+import { initSodium } from '@/lib/sodium';
+import { createSodiumProvider } from '@/modules/crypto/bootstrap/createSodiumProvider';
 
 describe('SodiumCryptoEngine encrypt/decrypt(integration) tests', () => {
   let engine: SodiumCryptoEngine;
@@ -39,4 +46,19 @@ describe('SodiumCryptoEngine encrypt/decrypt(integration) tests', () => {
       engine.decrypt(encrypted, key);
     }).toThrow();
   });
+
+  it.each(Object.keys(CRYPTO_CONFIG.versions))(
+    'roundtrip works for version %s',
+    async (version) => {
+      const config = getCryptoConfig(Number(version) as CryptoVersion);
+      const sodium = await initSodium();
+      const provider = createSodiumProvider(sodium, config);
+      const cEngine = new SodiumCryptoEngine(provider);
+
+      const encrypted = cEngine.encrypt(plaintext, key);
+      const decrypted = cEngine.decrypt(encrypted, key);
+
+      expect(decrypted).toEqual(plaintext);
+    },
+  );
 });

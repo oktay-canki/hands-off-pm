@@ -13,6 +13,8 @@ import {
 import { Plaintext } from '@/modules/crypto/core/Branding';
 import { asPlaintext } from '@/modules/crypto/utils/asPlaintext';
 import { asCiphertext } from '@/modules/crypto/utils/asCiphertext';
+import { CRYPTO_CONFIG, CryptoVersion } from '@/modules/crypto/crypto.config';
+import { validateDecryptInput } from '@/modules/crypto/crypto.validation';
 
 export class SodiumCryptoEngine implements CryptoEngine {
   constructor(private provider: SodiumProvider) {}
@@ -24,11 +26,14 @@ export class SodiumCryptoEngine implements CryptoEngine {
     return {
       ciphertext: asCiphertext(ciphertext),
       nonce,
-      version: 1, // TODO: implement actual crypto versioning
+      version: CRYPTO_CONFIG.current,
     };
   }
 
-  decrypt({ ciphertext, nonce }: EncryptedPayload, key: SubKey): Plaintext {
+  decrypt(payload: EncryptedPayload, key: SubKey): Plaintext {
+    validateDecryptInput(payload, key);
+
+    const { ciphertext, nonce } = payload;
     const plaintext = this.provider.decrypt(ciphertext, key, nonce);
 
     return asPlaintext(plaintext);
@@ -70,5 +75,15 @@ export class SodiumCryptoEngine implements CryptoEngine {
     });
 
     return withKeyBrand(subKey, purpose);
+  }
+
+  private resolveConfig(version: CryptoVersion) {
+    const config = CRYPTO_CONFIG.versions[version];
+
+    if (!config) {
+      throw new Error('Unsupported crypto version.'); // TODO: standardize with custom errors
+    }
+
+    return config;
   }
 }

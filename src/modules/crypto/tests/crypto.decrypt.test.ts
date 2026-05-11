@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createMockProvider } from '@/modules/crypto/test-utils/createMockProvider';
-import { SodiumCryptoEngine } from '@/modules/crypto/engines/SodiumCryptoEngine';
+import { createMockProvider } from '@/modules/crypto/tests/test-utils/createMockProvider';
+import { SodiumCryptoEngine } from '@/modules/crypto/SodiumCryptoEngine';
 import { EncryptedPayload } from '@/modules/crypto/core/EncryptedPayload';
 import { asCiphertext } from '@/modules/crypto/utils/asCiphertext';
 import { KEY_PURPOSE, VaultKey, withKeyBrand } from '@/modules/crypto/core/Key';
@@ -19,7 +19,7 @@ describe('SodiumCryptoEngine.decrypt tests', () => {
 
     const payload = {
       ciphertext: asCiphertext(new Uint8Array([1, 2, 3])),
-      nonce: new Uint8Array([4, 5, 6]),
+      nonce: new Uint8Array(new Uint8Array(24)),
       version: 1,
     } as EncryptedPayload;
 

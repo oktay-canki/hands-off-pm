@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { SodiumCryptoEngine } from '@/modules/crypto/engines/SodiumCryptoEngine';
-import { createMockProvider } from '@/modules/crypto/test-utils/createMockProvider';
+import { SodiumCryptoEngine } from '@/modules/crypto/SodiumCryptoEngine';
+import { createMockProvider } from '@/modules/crypto/tests/test-utils/createMockProvider';
 import { asPlaintext } from '@/modules/crypto/utils/asPlaintext';
 import { Plaintext } from '@/modules/crypto/core/Branding';
 import { KEY_PURPOSE, VaultKey, withKeyBrand } from '@/modules/crypto/core/Key';

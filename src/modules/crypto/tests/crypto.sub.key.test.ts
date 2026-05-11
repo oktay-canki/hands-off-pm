@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createMockProvider } from '@/modules/crypto/test-utils/createMockProvider';
-import { SodiumCryptoEngine } from '@/modules/crypto/engines/SodiumCryptoEngine';
-import { KDF_CONTEXTS, KEY_PURPOSE, MasterKey } from '../core/Key';
+import { createMockProvider } from '@/modules/crypto/tests/test-utils/createMockProvider';
+import { SodiumCryptoEngine } from '@/modules/crypto/SodiumCryptoEngine';
+import {
+  KDF_CONTEXTS,
+  KEY_PURPOSE,
+  MasterKey,
+} from '@/modules/crypto/core/Key';
 
 describe('CryptoEngine.deriveSubKey', () => {
   it('calls deriveFromKey with correct parameters', () => {

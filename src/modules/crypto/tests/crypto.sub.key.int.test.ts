@@ -1,14 +1,19 @@
 import { createServices } from '@/lib/bootstrap';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { KEY_PURPOSE } from '@/modules/crypto/core/Key';
-import { CRYPTO_CONFIG } from '@/modules/crypto/config/crypto.config';
+import {
+  CryptoConfig,
+  getCurrentCryptoConfig,
+} from '@/modules/crypto/crypto.config';
 
 describe('SodiumCryptoEngine.deriveSubKey(integration)', () => {
   let crypto: Awaited<ReturnType<typeof createServices>>['crypto'];
+  let cryptoConfig: CryptoConfig;
   let fixedSalt: Uint8Array;
 
   beforeEach(async () => {
     ({ crypto } = await createServices());
+    cryptoConfig = getCurrentCryptoConfig();
     fixedSalt = crypto.generateSalt();
   });
 
@@ -16,7 +21,7 @@ describe('SodiumCryptoEngine.deriveSubKey(integration)', () => {
     const masterKey = await crypto.deriveMasterKey('password', fixedSalt);
     const key = crypto.deriveSubKey(masterKey, 'vault', 1);
 
-    expect(key.length).toBe(CRYPTO_CONFIG.kdf.subKeyLength);
+    expect(key.length).toBe(cryptoConfig.kdf.subKeyLength);
   });
 
   it('derives the same subkey for same inputs', async () => {
