@@ -1,15 +1,16 @@
 import { SodiumCryptoEngine } from '@/modules/crypto/SodiumCryptoEngine';
-import { Vault } from '@/modules/vault/Vault';
 import { initSodium } from '@/lib/sodium';
 import { createSodiumProvider } from '@/modules/crypto/bootstrap/createSodiumProvider';
+import CryptoService from '@/modules/crypto/CryptoService';
 
 export async function createServices() {
+  // CRYPTO
   const sodium = await initSodium();
   const provider = createSodiumProvider(sodium);
   const crypto = new SodiumCryptoEngine(provider);
-  const vault = new Vault(crypto);
+  const cryptoService = new CryptoService(crypto);
 
-  return { crypto, vault };
+  return { cryptoService };
 }
 
 export const servicesPromise = createServices();

@@ -36,21 +36,33 @@ export function createSodiumProvider(
       return sodium.crypto_kdf_derive_from_key(length, subKeyId, context, key);
     },
     encrypt: (plaintext, key, nonce, aad) => {
+      // Ensure common instance/constructor for preventing realm issues
+      // Libsodium does instance checks!!
+      const m = new Uint8Array(plaintext);
+      const n = new Uint8Array(nonce);
+      const k = new Uint8Array(key);
+
       return sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
-        plaintext,
+        m,
         aad ?? null,
         null, // secret nonce (always null)
-        nonce,
-        key,
+        n,
+        k,
       );
     },
     decrypt: (ciphertext, key, nonce, aad) => {
+      // Ensure common instance/constructor for preventing realm issues
+      // Libsodium does instance checks!!
+      const ct = new Uint8Array(ciphertext);
+      const n = new Uint8Array(nonce);
+      const k = new Uint8Array(key);
+
       return sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
         null, // nsec (always null)
-        ciphertext,
+        ct,
         aad ?? null,
-        nonce,
-        key,
+        n,
+        k,
       );
     },
     constants: cryptoConfig.constants,

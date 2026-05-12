@@ -1,21 +1,26 @@
-import { createServices } from '@/lib/bootstrap';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   CryptoConfig,
   getCurrentCryptoConfig,
 } from '@/modules/crypto/crypto.config';
+import { CryptoEngine } from '@/modules/crypto/core/CryptoEngine';
+import { initSodium } from '@/lib/sodium';
+import { createSodiumProvider } from '@/modules/crypto/bootstrap/createSodiumProvider';
+import { SodiumCryptoEngine } from '@/modules/crypto/SodiumCryptoEngine';
 
 describe('SodiumCryptoEngine.deriveMasterKey(integration)', () => {
-  let crypto: Awaited<ReturnType<typeof createServices>>['crypto'];
+  let engine: CryptoEngine;
   let cryptoConfig: CryptoConfig;
 
   beforeEach(async () => {
-    ({ crypto } = await createServices());
+    const sodium = await initSodium();
+    const provider = createSodiumProvider(sodium);
+    engine = new SodiumCryptoEngine(provider);
     cryptoConfig = getCurrentCryptoConfig();
   });
 
   it('returns correct key length', async () => {
-    const key = await crypto.deriveMasterKey(
+    const key = await engine.deriveMasterKey(
       'password',
       new Uint8Array(16).fill(1),
     );
@@ -27,8 +32,8 @@ describe('SodiumCryptoEngine.deriveMasterKey(integration)', () => {
     const password = 'secure-password';
     const salt = new Uint8Array(16).fill(1);
 
-    const k1 = await crypto.deriveMasterKey(password, salt);
-    const k2 = await crypto.deriveMasterKey(password, salt);
+    const k1 = await engine.deriveMasterKey(password, salt);
+    const k2 = await engine.deriveMasterKey(password, salt);
 
     expect(k1).toEqual(k2);
   });
@@ -36,11 +41,11 @@ describe('SodiumCryptoEngine.deriveMasterKey(integration)', () => {
   it('produces different keys for different salts', async () => {
     const password = 'secure-password';
 
-    const k1 = await crypto.deriveMasterKey(
+    const k1 = await engine.deriveMasterKey(
       password,
       new Uint8Array(16).fill(1),
     );
-    const k2 = await crypto.deriveMasterKey(
+    const k2 = await engine.deriveMasterKey(
       password,
       new Uint8Array(16).fill(2),
     );
@@ -51,8 +56,8 @@ describe('SodiumCryptoEngine.deriveMasterKey(integration)', () => {
   it('produces different keys for different passwords', async () => {
     const salt = new Uint8Array(16).fill(1);
 
-    const k1 = await crypto.deriveMasterKey('password1', salt);
-    const k2 = await crypto.deriveMasterKey('password2', salt);
+    const k1 = await engine.deriveMasterKey('password1', salt);
+    const k2 = await engine.deriveMasterKey('password2', salt);
 
     expect(k1).not.toEqual(k2);
   });
