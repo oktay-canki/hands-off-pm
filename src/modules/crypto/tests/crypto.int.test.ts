@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { SodiumCryptoEngine } from '@/modules/crypto/SodiumCryptoEngine';
-import { createServices } from '@/lib/bootstrap';
 import { Plaintext } from '@/modules/crypto/core/Branding';
 import { asPlaintext } from '@/modules/crypto/utils/asPlaintext';
 import { KEY_PURPOSE, SubKey, withKeyBrand } from '@/modules/crypto/core/Key';
@@ -14,13 +13,13 @@ import { createSodiumProvider } from '@/modules/crypto/bootstrap/createSodiumPro
 
 describe('SodiumCryptoEngine encrypt/decrypt(integration) tests', () => {
   let engine: SodiumCryptoEngine;
-  let plaintext: Plaintext;
-  let key: SubKey;
+  const plaintext: Plaintext = asPlaintext(new Uint8Array([2, 4, 6, 8]));
+  const key: SubKey = withKeyBrand(new Uint8Array(32), KEY_PURPOSE.EXPORT);
 
   beforeEach(async () => {
-    engine = (await createServices()).crypto;
-    plaintext = asPlaintext(new Uint8Array([2, 4, 6, 8]));
-    key = withKeyBrand(new Uint8Array(32), KEY_PURPOSE.EXPORT);
+    const sodium = await initSodium();
+    const provider = createSodiumProvider(sodium);
+    engine = new SodiumCryptoEngine(provider);
   });
 
   it('encrypt → decrypt returns original plaintext', () => {
