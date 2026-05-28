@@ -1,3 +1,5 @@
+import { UnsupportedCryptoVersionError } from '@/modules/crypto/error/UnsupportedCryptoVersionError';
+
 const CRYPTO_PWHASH_ALG_ARGON2ID13 = 2;
 const SIXTY_FOUR_MB = 64 * 1024 * 1024;
 
@@ -42,7 +44,7 @@ export function getCryptoConfig(version: CryptoVersion): CryptoConfig {
   const config = CRYPTO_CONFIG.versions[version];
 
   if (!config) {
-    throw new Error(`Unsupported crypto version: ${version}`); // TODO: standardize with custom errors
+    throw new UnsupportedCryptoVersionError(version);
   }
 
   return config;

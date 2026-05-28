@@ -15,6 +15,7 @@ import { asPlaintext } from '@/modules/crypto/utils/asPlaintext';
 import { asCiphertext } from '@/modules/crypto/utils/asCiphertext';
 import { CRYPTO_CONFIG, CryptoVersion } from '@/modules/crypto/crypto.config';
 import { validateDecryptInput } from '@/modules/crypto/crypto.validation';
+import { UnsupportedCryptoVersionError } from '@/modules/crypto/error/UnsupportedCryptoVersionError';
 
 export class SodiumCryptoEngine implements CryptoEngine {
   constructor(private provider: SodiumProvider) {}
@@ -81,7 +82,7 @@ export class SodiumCryptoEngine implements CryptoEngine {
     const config = CRYPTO_CONFIG.versions[version];
 
     if (!config) {
-      throw new Error('Unsupported crypto version.'); // TODO: standardize with custom errors
+      throw new UnsupportedCryptoVersionError();
     }
 
     return config;

@@ -2,6 +2,7 @@ import { Plaintext } from '@/modules/crypto/core/Branding';
 import { CryptoEngine } from '@/modules/crypto/core/CryptoEngine';
 import { EncryptedPayload } from '@/modules/crypto/core/EncryptedPayload';
 import { SubKey } from '@/modules/crypto/core/Key';
+import { DecryptionFailedError } from '@/modules/crypto/error/DecryptionFailedError';
 import { asPlaintext } from '@/modules/crypto/utils/asPlaintext';
 
 class CryptoService {
@@ -29,7 +30,7 @@ class CryptoService {
     try {
       return JSON.parse(new TextDecoder().decode(bytes));
     } catch {
-      throw new Error('Decryption failed: invalid plaintext');
+      throw new DecryptionFailedError();
     }
   }
 }

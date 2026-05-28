@@ -1,6 +1,7 @@
 import { EncryptedPayload } from '@/modules/crypto/core/EncryptedPayload';
 import { SubKey } from '@/modules/crypto/core/Key';
 import { getCryptoConfig } from '@/modules/crypto/crypto.config';
+import { InvalidDecryptionInputError } from '@/modules/crypto/error/InvalidDecryptInputError';
 
 export function validateDecryptInput(
   payload: EncryptedPayload,
@@ -8,41 +9,37 @@ export function validateDecryptInput(
 ): void {
   const { ciphertext, nonce, version } = payload;
 
-  // --- Version
+  // --- Missing Version
   if (version == null) {
-    throw new Error('Missing crypto version');
+    throw new InvalidDecryptionInputError();
   }
 
   const config = getCryptoConfig(version);
 
   // --- Ciphertext
   if (!(ciphertext instanceof Uint8Array)) {
-    throw new Error('Ciphertext must be Uint8Array');
+    throw new InvalidDecryptionInputError();
   }
 
   if (ciphertext.length === 0) {
-    throw new Error('Ciphertext cannot be empty');
+    throw new InvalidDecryptionInputError();
   }
 
   // --- Nonce
   if (!(nonce instanceof Uint8Array)) {
-    throw new Error('Nonce must be Uint8Array');
+    throw new InvalidDecryptionInputError();
   }
 
   if (nonce.length !== config.constants.nonceLength) {
-    throw new Error(
-      `Invalid nonce length: expected ${config.constants.nonceLength}, got ${nonce.length}`,
-    );
+    throw new InvalidDecryptionInputError();
   }
 
   // --- Key
   if (!(key instanceof Uint8Array)) {
-    throw new Error('Key must be Uint8Array');
+    throw new InvalidDecryptionInputError();
   }
 
   if (key.length !== config.kdf.subKeyLength) {
-    throw new Error(
-      `Invalid key length: expected ${config.kdf.subKeyLength}, got ${key.length}`,
-    );
+    throw new InvalidDecryptionInputError();
   }
 }
