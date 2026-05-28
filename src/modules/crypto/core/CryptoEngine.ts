@@ -1,10 +1,23 @@
-import { DerivedKey } from '@/modules/crypto/core/DerivedKey';
 import { EncryptedPayload } from '@/modules/crypto/core/EncryptedPayload';
+import {
+  KeyBrand,
+  MasterKey,
+  SubKey,
+  SubKeyPurpose,
+} from '@/modules/crypto/core/Key';
+import { Plaintext } from '@/modules/crypto/core/Branding';
 
 export interface CryptoEngine {
-  encrypt<T extends object>(
-    data: T,
-    key: DerivedKey,
-  ): Promise<EncryptedPayload>;
-  decrypt<T>(data: EncryptedPayload, key: DerivedKey): Promise<T>;
+  encrypt(plaintext: Plaintext, key: SubKey): EncryptedPayload;
+  decrypt(payload: EncryptedPayload, key: SubKey): Plaintext;
+
+  generateSalt(): Uint8Array;
+  generateNonce(): Uint8Array;
+  deriveMasterKey(password: string, salt: Uint8Array): Promise<MasterKey>;
+  deriveSubKey<T extends SubKeyPurpose>(
+    masterKey: MasterKey,
+    purpose: T,
+    subKeyId: number,
+    length: number,
+  ): KeyBrand<T>;
 }

@@ -17,7 +17,7 @@ Function: Argon2id
 
 ### Parameters
 
-Time cost: 3
+Time cost: 2
 Memory cost: 64 MB
 Parallelism: 1
 Output: 32 bytes
@@ -59,3 +59,8 @@ Nonce:
 - 24 bytes (192-bit)
 - Must be unique per encryption operation
 - Randomly generated per message
+
+### Salt Handling
+
+- Salts will be randomly generated Uint8Array's
+- Common salt length will be 16 bytes
