@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { SodiumCryptoEngine } from '@/modules/crypto/SodiumCryptoEngine';
-import { Plaintext } from '@/modules/crypto/core/Branding';
-import { asPlaintext } from '@/modules/crypto/utils/asPlaintext';
 import { KEY_PURPOSE, SubKey, withKeyBrand } from '@/modules/crypto/core/Key';
 import {
   CRYPTO_CONFIG,
@@ -13,7 +11,7 @@ import { createSodiumProvider } from '@/modules/crypto/bootstrap/createSodiumPro
 
 describe('SodiumCryptoEngine encrypt/decrypt(integration) tests', () => {
   let engine: SodiumCryptoEngine;
-  const plaintext: Plaintext = asPlaintext(new Uint8Array([2, 4, 6, 8]));
+  const plaintext: Uint8Array = new Uint8Array([2, 4, 6, 8]);
   const key: SubKey = withKeyBrand(new Uint8Array(32), KEY_PURPOSE.EXPORT);
 
   beforeEach(async () => {

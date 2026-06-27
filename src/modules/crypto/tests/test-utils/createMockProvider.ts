@@ -1,7 +1,6 @@
 import type { SodiumProvider } from '@/modules/crypto/core/SodiumProvider';
 import { MasterKeyPayload } from '@/modules/crypto/core/MasterKeyPayload';
 import { SubKeyPayload } from '@/modules/crypto/core/SubKeyPayload';
-import { asPlaintext } from '@/modules/crypto/utils/asPlaintext';
 
 const DEFAULT_CONSTANTS = {
   saltLength: 16,
@@ -33,8 +32,7 @@ export function createMockProvider(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     encrypt: (plaintext, key, nonce, aad) => new Uint8Array([1, 1, 1, 1]),
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    decrypt: (ciphertext, key, nonce, aad) =>
-      asPlaintext(new Uint8Array([9, 9, 9])),
+    decrypt: (ciphertext, key, nonce, aad) => new Uint8Array([9, 9, 9]),
     constants: DEFAULT_CONSTANTS,
     kdf: DEFAULT_KDF,
   };

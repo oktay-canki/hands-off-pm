@@ -16,12 +16,12 @@ describe('CryptoEngine.deriveSubKey', () => {
     const engine = new SodiumCryptoEngine(provider);
     const masterKey = new Uint8Array(provider.kdf.masterKeyLength) as MasterKey;
 
-    engine.deriveSubKey(masterKey, KEY_PURPOSE.VAULT, 1);
+    engine.deriveSubKey(masterKey, KEY_PURPOSE.VAULT);
 
     expect(provider.deriveFromKey).toHaveBeenCalledWith({
       length: provider.kdf.subKeyLength,
       key: masterKey,
-      subKeyId: 1,
+      subKeyId: 0,
       context: KDF_CONTEXTS[KEY_PURPOSE.VAULT],
     });
   });
@@ -34,7 +34,7 @@ describe('CryptoEngine.deriveSubKey', () => {
     const engine = new SodiumCryptoEngine(provider);
     const masterKey = new Uint8Array(provider.kdf.masterKeyLength) as MasterKey;
 
-    engine.deriveSubKey(masterKey, KEY_PURPOSE.ENTRY, 1);
+    engine.deriveSubKey(masterKey, KEY_PURPOSE.ENTRY);
 
     expect(provider.deriveFromKey).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -51,12 +51,14 @@ describe('CryptoEngine.deriveSubKey', () => {
 
     const engine = new SodiumCryptoEngine(provider);
     const masterKey = new Uint8Array(provider.kdf.masterKeyLength) as MasterKey;
-    const k1 = engine.deriveSubKey(masterKey, KEY_PURPOSE.VAULT, 1);
-    const k2 = engine.deriveSubKey(masterKey, KEY_PURPOSE.VAULT, 1);
+    const k1 = engine.deriveSubKey(masterKey, KEY_PURPOSE.VAULT);
+    const k2 = engine.deriveSubKey(masterKey, KEY_PURPOSE.VAULT);
 
     expect(k1).toEqual(k2);
   });
 
+  /* Not needed after change in SubKeyId / SubKey context handling */
+  /*
   it('passes subKeyId correctly', () => {
     const provider = createMockProvider();
     provider.deriveFromKey = vi.fn().mockReturnValue(new Uint8Array(32));
@@ -71,5 +73,5 @@ describe('CryptoEngine.deriveSubKey', () => {
         subKeyId: 10,
       }),
     );
-  });
+  }); */
 });
