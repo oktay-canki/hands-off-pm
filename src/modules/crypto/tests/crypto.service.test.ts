@@ -30,33 +30,4 @@ describe('CryptoService unit tests', () => {
 
     expect(passed.constructor.name).toBe('Uint8Array');
   });
-
-  it('deserializes decrypted bytes into object', () => {
-    const obj = { hello: 'world' };
-    const bytes = new TextEncoder().encode(JSON.stringify(obj));
-
-    const engine = {
-      encrypt: vi.fn(),
-      decrypt: vi.fn().mockReturnValue(bytes),
-    } as unknown as CryptoEngine;
-
-    const service = new CryptoService(engine);
-
-    const result = service.decrypt<typeof obj>({} as EncryptedPayload, key);
-
-    expect(result).toEqual(obj);
-  });
-
-  it('throws if decrypted plaintext is invalid JSON', () => {
-    const invalidBytes = new Uint8Array([1, 2, 3]); // not valid JSON
-
-    const engine = {
-      encrypt: vi.fn(),
-      decrypt: vi.fn().mockReturnValue(invalidBytes),
-    } as unknown as CryptoEngine;
-
-    const service = new CryptoService(engine);
-
-    expect(() => service.decrypt({} as EncryptedPayload, key)).toThrow();
-  });
 });

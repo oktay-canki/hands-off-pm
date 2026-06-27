@@ -1,16 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SodiumCryptoEngine } from '@/modules/crypto/SodiumCryptoEngine';
 import { createMockProvider } from '@/modules/crypto/tests/test-utils/createMockProvider';
-import { asPlaintext } from '@/modules/crypto/utils/asPlaintext';
-import { Plaintext } from '@/modules/crypto/core/Branding';
 import { KEY_PURPOSE, VaultKey, withKeyBrand } from '@/modules/crypto/core/Key';
 
 describe('SodiumCryptoEngine.encrypt tests', () => {
-  let plaintext: Plaintext;
+  let plaintext: Uint8Array;
   let key: VaultKey;
 
   beforeEach(() => {
-    plaintext = asPlaintext(new Uint8Array([1, 2, 3]));
+    plaintext = new Uint8Array([1, 2, 3]);
     key = withKeyBrand(new Uint8Array([1, 1, 1]), KEY_PURPOSE.VAULT);
   });
 

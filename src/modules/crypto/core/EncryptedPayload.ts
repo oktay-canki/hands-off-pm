@@ -1,8 +1,7 @@
-import { Ciphertext } from '@/modules/crypto/core/Branding';
 import { CryptoVersion } from '@/modules/crypto/crypto.config';
 
 export type EncryptedPayload = {
-  ciphertext: Ciphertext;
+  ciphertext: Uint8Array;
   nonce: Uint8Array;
   version: CryptoVersion;
 };

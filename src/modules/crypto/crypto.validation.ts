@@ -17,7 +17,7 @@ export function validateDecryptInput(
   const config = getCryptoConfig(version);
 
   // --- Ciphertext
-  if (!(ciphertext instanceof Uint8Array)) {
+  if (!(ciphertext.constructor.name === 'Uint8Array')) {
     throw new InvalidDecryptionInputError();
   }
 
@@ -26,7 +26,7 @@ export function validateDecryptInput(
   }
 
   // --- Nonce
-  if (!(nonce instanceof Uint8Array)) {
+  if (!(nonce.constructor.name === 'Uint8Array')) {
     throw new InvalidDecryptionInputError();
   }
 
@@ -35,7 +35,7 @@ export function validateDecryptInput(
   }
 
   // --- Key
-  if (!(key instanceof Uint8Array)) {
+  if (!(key.constructor.name === 'Uint8Array')) {
     throw new InvalidDecryptionInputError();
   }
 

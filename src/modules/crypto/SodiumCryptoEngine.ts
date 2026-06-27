@@ -10,9 +10,6 @@ import {
   SubKeyPurpose,
   withKeyBrand,
 } from '@/modules/crypto/core/Key';
-import { Plaintext } from '@/modules/crypto/core/Branding';
-import { asPlaintext } from '@/modules/crypto/utils/asPlaintext';
-import { asCiphertext } from '@/modules/crypto/utils/asCiphertext';
 import { CRYPTO_CONFIG, CryptoVersion } from '@/modules/crypto/crypto.config';
 import { validateDecryptInput } from '@/modules/crypto/crypto.validation';
 import { UnsupportedCryptoVersionError } from '@/modules/crypto/error/UnsupportedCryptoVersionError';
@@ -20,24 +17,22 @@ import { UnsupportedCryptoVersionError } from '@/modules/crypto/error/Unsupporte
 export class SodiumCryptoEngine implements CryptoEngine {
   constructor(private provider: SodiumProvider) {}
 
-  encrypt(plaintext: Plaintext, key: SubKey): EncryptedPayload {
+  encrypt(bytes: Uint8Array, key: SubKey): EncryptedPayload {
     const nonce = this.generateNonce();
-    const ciphertext = this.provider.encrypt(plaintext, key, nonce);
+    const ciphertext = this.provider.encrypt(bytes, key, nonce);
 
     return {
-      ciphertext: asCiphertext(ciphertext),
+      ciphertext,
       nonce,
       version: CRYPTO_CONFIG.current,
     };
   }
 
-  decrypt(payload: EncryptedPayload, key: SubKey): Plaintext {
+  decrypt(payload: EncryptedPayload, key: SubKey): Uint8Array {
     validateDecryptInput(payload, key);
 
     const { ciphertext, nonce } = payload;
-    const plaintext = this.provider.decrypt(ciphertext, key, nonce);
-
-    return asPlaintext(plaintext);
+    return this.provider.decrypt(ciphertext, key, nonce);
   }
 
   generateSalt(): Uint8Array {
@@ -64,14 +59,13 @@ export class SodiumCryptoEngine implements CryptoEngine {
   deriveSubKey<T extends SubKeyPurpose>(
     masterKey: MasterKey,
     purpose: T,
-    subKeyId: number,
   ): KeyBrand<T> {
     const context = KDF_CONTEXTS[purpose];
 
     const subKey = this.provider.deriveFromKey({
       length: this.provider.kdf.subKeyLength,
       key: masterKey,
-      subKeyId,
+      subKeyId: 0,
       context,
     });
 

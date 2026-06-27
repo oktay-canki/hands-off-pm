@@ -23,27 +23,29 @@ describe('SodiumCryptoEngine.deriveSubKey(integration)', () => {
 
   it('returns correct key length', async () => {
     const masterKey = await engine.deriveMasterKey('password', fixedSalt);
-    const key = engine.deriveSubKey(masterKey, 'vault', 1);
+    const key = engine.deriveSubKey(masterKey, 'vault');
 
     expect(key.length).toBe(cryptoConfig.kdf.subKeyLength);
   });
 
   it('derives the same subkey for same inputs', async () => {
     const masterKey = await engine.deriveMasterKey('password', fixedSalt);
-    const k1 = engine.deriveSubKey(masterKey, KEY_PURPOSE.VAULT, 1);
-    const k2 = engine.deriveSubKey(masterKey, KEY_PURPOSE.VAULT, 1);
+    const k1 = engine.deriveSubKey(masterKey, KEY_PURPOSE.VAULT);
+    const k2 = engine.deriveSubKey(masterKey, KEY_PURPOSE.VAULT);
 
     expect(k1).toEqual(k2);
   });
 
   it('produces different keys for different purposes', async () => {
     const masterKey = await engine.deriveMasterKey('password', fixedSalt);
-    const vaultKey = engine.deriveSubKey(masterKey, KEY_PURPOSE.VAULT, 1);
-    const entryKey = engine.deriveSubKey(masterKey, KEY_PURPOSE.ENTRY, 1);
+    const vaultKey = engine.deriveSubKey(masterKey, KEY_PURPOSE.VAULT);
+    const entryKey = engine.deriveSubKey(masterKey, KEY_PURPOSE.ENTRY);
 
     expect(vaultKey).not.toEqual(entryKey);
   });
 
+  /* Not needed after change in SubKeyId / SubKey context handling */
+  /*
   it('produces different keys for different subKeyIds', async () => {
     const masterKey = await engine.deriveMasterKey('password', fixedSalt);
     const k1 = engine.deriveSubKey(masterKey, KEY_PURPOSE.VAULT, 1);
@@ -51,4 +53,5 @@ describe('SodiumCryptoEngine.deriveSubKey(integration)', () => {
 
     expect(k1).not.toEqual(k2);
   });
+  */
 });
