@@ -1,4 +1,5 @@
 import StorageService from '@/modules/storage/StorageService';
+import FailedToPersistLocallyError from '@/modules/vault/errors/FailedToPersistLocallyError';
 import ItemDoesNotExistError from '@/modules/vault/errors/ItemDoesNotExistError';
 import VaultLockedError from '@/modules/vault/errors/VaultLockedError';
 import VaultNotLoadedError from '@/modules/vault/errors/VaultNotLoadedError';
@@ -15,7 +16,7 @@ type VaultStatus = {
   error: Error | null;
 };
 
-type VaultSnapshot = {
+export type VaultSnapshot = {
   status: VaultStatus;
   entries: VaultEntry[];
 };
@@ -34,6 +35,7 @@ class VaultService {
   private listeners: Set<(snapshot: VaultSnapshot) => void> = new Set();
   private cachedEntries: VaultEntry[] = [];
   private unlocking: boolean = false;
+  private currentSnapshot: VaultSnapshot;
 
   private status: VaultStatus = {
     isLocked: true,
@@ -43,6 +45,10 @@ class VaultService {
 
   constructor() {
     this.storageService = new StorageService();
+    this.currentSnapshot = {
+      status: { ...this.status },
+      entries: [...this.cachedEntries],
+    };
   }
 
   private mutationQueue: Promise<void> = Promise.resolve();
@@ -130,23 +136,26 @@ class VaultService {
     return { ...entry };
   }
 
-  async getSnapshot(): Promise<EncryptedVault> {
+  async encryptForPersistence(): Promise<EncryptedVault> {
     if (!this.workerApi) throw new VaultLockedError();
     return this.workerApi.encryptVault();
   }
 
   subscribe(listener: (snapshot: VaultSnapshot) => void): () => void {
     this.listeners.add(listener);
-    listener({ status: { ...this.status }, entries: [...this.cachedEntries] });
     return () => this.listeners.delete(listener);
   }
 
+  getSnapshot(): VaultSnapshot {
+    return this.currentSnapshot;
+  }
+
   private notify(): void {
-    const snapshot = {
+    this.currentSnapshot = {
       status: { ...this.status },
       entries: [...this.cachedEntries],
     };
-    this.listeners.forEach((listener) => listener(snapshot));
+    this.listeners.forEach((listener) => listener(this.currentSnapshot));
   }
 
   async addEntry(entry: VaultEntryDraft): Promise<void> {
@@ -162,6 +171,7 @@ class VaultService {
       try {
         await this.workerApi!.addItem(item);
         this.cachedEntries = [...this.cachedEntries, item];
+        await this.persistVault();
       } catch (error) {
         this.updateStatus({ error: this.toAppError(error) });
         throw error;
@@ -184,6 +194,7 @@ class VaultService {
             ? { ...e, ...updates, itemId, updatedAt: Date.now() }
             : e,
         );
+        await this.persistVault();
       } catch (error) {
         this.cachedEntries = await this.workerApi!.getEntries();
         this.updateStatus({ error: this.toAppError(error) });
@@ -202,6 +213,7 @@ class VaultService {
         this.cachedEntries = this.cachedEntries.filter(
           (e) => e.itemId !== itemId,
         );
+        await this.persistVault();
       } catch (error) {
         this.updateStatus({ error: this.toAppError(error) });
         throw error;
@@ -211,20 +223,18 @@ class VaultService {
     });
   }
 
-  async save(): Promise<void> {
-    this.updateStatus({ isLoading: true, error: null });
-    this.notify();
+  private async persistVault(): Promise<void> {
     try {
-      const snapshot = await this.getSnapshot();
+      const snapshot = await this.encryptForPersistence();
       await this.storageService.persistVault(snapshot);
       this.encryptedVault = snapshot;
-      this.updateStatus({ isLoading: false });
-    } catch (error) {
-      this.updateStatus({ isLoading: false, error: this.toAppError(error) });
-      throw error;
-    } finally {
-      this.notify();
+    } catch {
+      throw new FailedToPersistLocallyError();
     }
+  }
+
+  async save(): Promise<void> {
+    return this.enqueue(() => this.persistVault());
   }
 
   async reload(password: string): Promise<void> {
@@ -244,6 +254,50 @@ class VaultService {
     if (error instanceof Error)
       return new AppError({ message: error.message, code: '' });
     return new UnknownError();
+  }
+
+  async vaultExists(userId: string): Promise<boolean> {
+    let ret = true;
+
+    try {
+      await this.storageService.loadVault(userId);
+    } catch {
+      ret = false;
+    }
+
+    return ret;
+  }
+
+  async register(userId: string, password: string): Promise<void> {
+    if (!this.status.isLocked) throw new Error('Vault is already unlocked');
+
+    this.updateStatus({ isLoading: true, error: null });
+    this.notify();
+
+    this.worker = new Worker(new URL('./vault.worker.ts', import.meta.url), {
+      type: 'module',
+    });
+    this.workerApi = wrap<VaultWorkerApi>(this.worker);
+
+    try {
+      await this.workerApi.registerVault(userId, password);
+      this.userId = userId;
+      this.encryptedVault = await this.storageService.loadVault(userId);
+      this.cachedEntries = await this.workerApi.getEntries();
+      this.updateStatus({
+        isLocked: false,
+        isLoading: false,
+      });
+      this.notify();
+    } catch (error) {
+      this.updateStatus({ error: this.toAppError(error) });
+      this.lock();
+      throw error;
+    }
+  }
+
+  getUserId() {
+    return this.userId;
   }
 }
 
