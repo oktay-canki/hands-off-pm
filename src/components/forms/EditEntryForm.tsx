@@ -1,5 +1,6 @@
 'use client';
 import PasswordInput from '@/components/common/PasswordInput';
+import PasswordInputWithGenerator from '@/components/common/PasswordInputWithGenerator';
 import { useVault } from '@/context/VaultContext';
 import VaultEntry from '@/modules/vault/types/VaultEntry';
 import { useRouter } from 'next/navigation';
@@ -61,11 +62,7 @@ export default function EditEntryForm({ defaultValues }: Props) {
         }}
         value={username ?? ''}
       />
-      <PasswordInput
-        value={password}
-        placeholder="Password"
-        onChange={(value) => setPassword(value)}
-      />
+      <PasswordInputWithGenerator value={password} onChange={setPassword} />
       <input
         type="text"
         placeholder="URL"

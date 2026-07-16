@@ -1,7 +1,7 @@
 'use client';
 
 import PasswordInput from '@/components/common/PasswordInput';
-import EditEntryLink from '@/components/EditEntryLink';
+import EditEntryLink from '@/components/entry/EditEntryLink';
 import DeleteEntryModal from '@/components/entry/DeleteEntryModal';
 import VaultEntry from '@/modules/vault/types/VaultEntry';
 import { useVault } from '@/context/VaultContext';

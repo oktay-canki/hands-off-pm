@@ -1,40 +1,34 @@
 'use client';
-import { useState } from 'react';
+import { InputHTMLAttributes, useState } from 'react';
 
-type Props = {
-  value: string;
-  onChange?: (value: string) => void;
-  placeholder?: string;
-  disabled?: boolean;
+type Props = InputHTMLAttributes<HTMLInputElement> & {
+  visible?: boolean;
 };
 
 export default function PasswordInput({
-  value,
-  onChange,
+  visible,
   placeholder = 'Password',
-  disabled = false,
+  ...rest
 }: Props) {
   const [isVisible, setIsVisible] = useState(false);
+
+  const showText = visible || isVisible;
 
   return (
     <div>
       <input
-        type={isVisible ? 'text' : 'password'}
-        value={value}
-        onChange={(e) => {
-          if (onChange) onChange(e.target.value);
-        }}
+        type={showText ? 'text' : 'password'}
         autoComplete="off"
         placeholder={placeholder}
-        disabled={disabled}
+        {...rest}
       />
       <button
         type="button"
         onClick={() => setIsVisible((prev) => !prev)}
-        aria-label={isVisible ? 'Hide password' : 'Show password'}
-        aria-pressed={isVisible}
+        aria-label={showText ? 'Hide password' : 'Show password'}
+        aria-pressed={showText}
       >
-        {isVisible ? 'Hide' : 'Show'}
+        {showText ? 'Hide' : 'Show'}
       </button>
     </div>
   );

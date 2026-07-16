@@ -52,7 +52,7 @@ const UnlockVaultForm = () => {
       <PasswordInput
         placeholder="Password"
         value={masterPassword}
-        onChange={(value) => setMasterPassword(value)}
+        onChange={(e) => setMasterPassword(e.target.value)}
       />
       <button type="submit" disabled={isLoading}>
         Unlock

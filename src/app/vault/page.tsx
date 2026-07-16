@@ -1,6 +1,6 @@
 'use client';
 
-import AddEntryLink from '@/components/AddEntryLink';
+import AddEntryLink from '@/components/entry/AddEntryLink';
 import EntryList from '@/components/entry/EntryList';
 import SessionInfo from '@/components/SessionInfo';
 

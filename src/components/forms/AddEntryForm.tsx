@@ -1,6 +1,6 @@
 'use client';
 
-import PasswordInput from '@/components/common/PasswordInput';
+import PasswordInputWithGenerator from '@/components/common/PasswordInputWithGenerator';
 import { useVault } from '@/context/VaultContext';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -12,6 +12,7 @@ const AddEntryForm = () => {
   const [password, setPassword] = useState('');
   const [url, setUrl] = useState<string | undefined>(undefined);
   const [notes, setNotes] = useState<string | undefined>(undefined);
+
   const vaultService = useVault();
   const router = useRouter();
 
@@ -69,11 +70,9 @@ const AddEntryForm = () => {
         }}
         value={username ?? ''}
       />
-      <PasswordInput
-        value={password}
-        placeholder="Password"
-        onChange={(value) => setPassword(value)}
-      />
+
+      <PasswordInputWithGenerator value={password} onChange={setPassword} />
+
       <input
         type="text"
         placeholder="URL"

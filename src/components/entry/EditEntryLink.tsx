@@ -5,5 +5,5 @@ type Props = {
 };
 
 export default function EditEntryLink({ itemId }: Props) {
-  return <Link href={`/vault/items/${itemId}/edit`}>Edit</Link>;
+  return <Link href={`/vault/entry/${itemId}/edit`}>Edit</Link>;
 }
