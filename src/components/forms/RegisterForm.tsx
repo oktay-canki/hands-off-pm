@@ -1,7 +1,42 @@
 'use client';
 import PasswordInput from '@/components/common/PasswordInput';
 import { useVault } from '@/context/VaultContext';
+import { Vault } from 'lucide-react';
 import { useState } from 'react';
+import { motion, type Variants } from 'framer-motion';
+
+import ButtonLoader from '@/components/common/ButtonLoader';
+
+const container: Variants = {
+  hidden: {},
+  show: {
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+  },
+};
+
+const item: Variants = {
+  hidden: { opacity: 0, x: 12 },
+  show: { opacity: 1, x: 0, transition: { duration: 0.35, ease: 'easeOut' } },
+};
+
+const rotatingVault: Variants = {
+  hidden: { opacity: 0.8, y: 16, rotate: 360 },
+  show: {
+    opacity: 1,
+    y: 0,
+    rotate: 0,
+    transition: { duration: 0.4, ease: 'easeOut' },
+  },
+};
+
+const slideInText: Variants = {
+  hidden: { opacity: 0, x: 24 },
+  show: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.4, ease: 'easeOut' },
+  },
+};
 
 const RegisterForm = () => {
   const vaultService = useVault();
@@ -44,23 +79,45 @@ const RegisterForm = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label>Create a new account</label>
-      <input
-        type="text"
-        placeholder="username"
-        onChange={(e) => setUsername(e.target.value)}
-        value={username}
-      />
-      <PasswordInput
-        placeholder="Password"
-        value={masterPassword}
-        onChange={(e) => setMasterPassword(e.target.value)}
-      />
-      <button type="submit" disabled={isLoading}>
-        {!isLoading ? 'Register' : 'Loading...'}
-      </button>
-    </form>
+    <motion.div variants={container} initial="hidden" animate="show">
+      <form onSubmit={handleSubmit}>
+        <div className="mb-14">
+          <motion.div variants={rotatingVault}>
+            <Vault size={82} strokeWidth={1} className="mx-auto mb-4" />
+          </motion.div>
+          <motion.div variants={slideInText}>
+            <h2 className="title w-full text-center">Create Vault</h2>
+          </motion.div>
+        </div>
+
+        <motion.div variants={item}>
+          <input
+            type="text"
+            placeholder="Username"
+            onChange={(e) => setUsername(e.target.value)}
+            value={username}
+            className="input muted-input w-full large-text mb-4"
+            autoFocus={true}
+          />
+        </motion.div>
+        <motion.div variants={item}>
+          <PasswordInput
+            value={masterPassword}
+            onChange={(e) => setMasterPassword(e.target.value)}
+            className="muted-input"
+          />
+        </motion.div>
+        <motion.div variants={item}>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="btn btn-secondary w-full mt-4"
+          >
+            {isLoading ? <ButtonLoader /> : 'Create'}
+          </button>
+        </motion.div>
+      </form>
+    </motion.div>
   );
 };
 

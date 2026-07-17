@@ -14,8 +14,6 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     }
   }, [status.isLoading, status.isLocked, router]);
 
-  if (status.isLoading) return <>Loading...</>;
-
   if (!status.isLocked) return null;
 
   return <>{children}</>;

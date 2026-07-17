@@ -1,5 +1,4 @@
 'use client';
-import PasswordInput from '@/components/common/PasswordInput';
 import PasswordInputWithGenerator from '@/components/common/PasswordInputWithGenerator';
 import { useVault } from '@/context/VaultContext';
 import VaultEntry from '@/modules/vault/types/VaultEntry';

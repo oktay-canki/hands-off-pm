@@ -42,7 +42,7 @@ export default function PasswordGeneratorControl({ value, onChange }: Props) {
     }
 
     if (!generatedPassword) generate();
-  }, []);
+  }, [generatedPassword]);
 
   useEffect(() => {
     onChange?.(generatedPassword);
@@ -74,6 +74,16 @@ export default function PasswordGeneratorControl({ value, onChange }: Props) {
   return (
     <div>
       <div>
+        <div>
+          <input
+            id="pw-length"
+            type="number"
+            onChange={(e) => setLength(Number(e.target.value))}
+            min={8}
+            max={32}
+            defaultValue={8}
+          />
+        </div>
         <div>
           <input
             id="opt-uppercase"
