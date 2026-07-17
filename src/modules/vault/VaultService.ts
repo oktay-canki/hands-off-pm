@@ -1,7 +1,13 @@
 import StorageService from '@/modules/storage/StorageService';
+import FailedToAddEntryError from '@/modules/vault/errors/FailedToAddEntryError';
+import FailedToDeleteEntryError from '@/modules/vault/errors/FailedToDeleteEntryError';
 import FailedToPersistLocallyError from '@/modules/vault/errors/FailedToPersistLocallyError';
+import FailedToRegisterError from '@/modules/vault/errors/FailedToRegisterError';
+import FailedToUpdateEntryError from '@/modules/vault/errors/FailedToUpdateEntryError';
+import InvalidCredentialsError from '@/modules/vault/errors/InvalidCredentialsError';
 import ItemDoesNotExistError from '@/modules/vault/errors/ItemDoesNotExistError';
 import VaultLockedError from '@/modules/vault/errors/VaultLockedError';
+import VaultNotFoundError from '@/modules/vault/errors/VaultNotFoundError';
 import VaultNotLoadedError from '@/modules/vault/errors/VaultNotLoadedError';
 import EncryptedVault from '@/modules/vault/types/EncryptedVault';
 import VaultEntry from '@/modules/vault/types/VaultEntry';
@@ -66,11 +72,14 @@ class VaultService {
     this.updateStatus({ isLoading: true });
     this.notify();
     try {
-      this.userId = userId;
       this.encryptedVault = await this.storageService.loadVault(userId);
+      this.userId = userId;
       this.updateStatus({ isLoading: false });
-    } catch (error) {
-      this.updateStatus({ isLoading: false, error: this.toAppError(error) });
+    } catch (e) {
+      this.clearUser();
+      console.log(e);
+      const error = new VaultNotFoundError();
+      this.updateStatus({ isLoading: false, error });
       throw error;
     } finally {
       this.notify();
@@ -96,8 +105,11 @@ class VaultService {
       this.cachedEntries = await this.workerApi.getEntries();
       this.updateStatus({ isLocked: false, isLoading: false });
       this.notify();
-    } catch (error) {
-      this.updateStatus({ error: this.toAppError(error) });
+    } catch (e) {
+      console.log(e);
+      // Assume invalid credentials
+      const error = new InvalidCredentialsError();
+      this.updateStatus({ error });
       this.lock();
       throw error;
     } finally {
@@ -113,6 +125,12 @@ class VaultService {
     this.cachedEntries = [];
     this.mutationQueue = Promise.resolve();
     this.updateStatus({ isLocked: true, isLoading: false });
+    this.notify();
+  }
+
+  clearUser() {
+    this.userId = null;
+    this.updateStatus({});
     this.notify();
   }
 
@@ -172,8 +190,10 @@ class VaultService {
         await this.workerApi!.addItem(item);
         this.cachedEntries = [...this.cachedEntries, item];
         await this.persistVault();
-      } catch (error) {
-        this.updateStatus({ error: this.toAppError(error) });
+      } catch (e) {
+        console.log(e);
+        const error = new FailedToAddEntryError();
+        this.updateStatus({ error });
         throw error;
       } finally {
         this.notify();
@@ -195,9 +215,11 @@ class VaultService {
             : e,
         );
         await this.persistVault();
-      } catch (error) {
+      } catch (e) {
         this.cachedEntries = await this.workerApi!.getEntries();
-        this.updateStatus({ error: this.toAppError(error) });
+        console.log(e);
+        const error = new FailedToUpdateEntryError();
+        this.updateStatus({ error });
         throw error;
       } finally {
         this.notify();
@@ -214,8 +236,10 @@ class VaultService {
           (e) => e.itemId !== itemId,
         );
         await this.persistVault();
-      } catch (error) {
-        this.updateStatus({ error: this.toAppError(error) });
+      } catch (e) {
+        console.log(e);
+        const error = new FailedToDeleteEntryError();
+        this.updateStatus({ error });
         throw error;
       } finally {
         this.notify();
@@ -289,8 +313,10 @@ class VaultService {
         isLoading: false,
       });
       this.notify();
-    } catch (error) {
-      this.updateStatus({ error: this.toAppError(error) });
+    } catch (e) {
+      console.log(e);
+      const error = new FailedToRegisterError();
+      this.updateStatus({ error });
       this.lock();
       throw error;
     }

@@ -3,7 +3,7 @@ import { useVault } from '@/context/VaultContext';
 import type { VaultSnapshot } from '@/modules/vault/VaultService';
 import { useCallback, useSyncExternalStore } from 'react';
 
-const SERVER_SNAPSHOT: VaultSnapshot = {
+export const SERVER_SNAPSHOT: VaultSnapshot = {
   status: {
     isLocked: true,
     isLoading: false,

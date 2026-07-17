@@ -6,6 +6,8 @@ import EncryptedVault from '@/modules/vault/types/EncryptedVault';
 import VaultEntry from '@/modules/vault/types/VaultEntry';
 import VaultItem from '@/modules/vault/types/VaultItem';
 import VaultEngine from '@/modules/vault/VaultEngine';
+import { AppError } from '@/shared/error/AppError';
+import UnknownError from '@/shared/error/UnknownError';
 import { expose } from 'comlink';
 
 class VaultWorkerApi {
@@ -67,6 +69,35 @@ class VaultWorkerApi {
   }
 }
 
-expose(new VaultWorkerApi());
+function normalizeError(error: unknown): AppError {
+  if (error instanceof AppError) return error;
+  console.error('Unexpected worker error:', error);
+  return new UnknownError();
+}
+
+function withErrorNormalization<T extends object>(target: T): T {
+  return new Proxy(target, {
+    get(obj, prop, receiver) {
+      const value = Reflect.get(obj, prop, receiver);
+      if (typeof value !== 'function') return value;
+
+      return function (this: unknown, ...args: unknown[]) {
+        try {
+          const result = value.apply(obj, args);
+          if (result instanceof Promise) {
+            return result.catch((error: unknown) => {
+              throw normalizeError(error);
+            });
+          }
+          return result;
+        } catch (error) {
+          throw normalizeError(error);
+        }
+      };
+    },
+  });
+}
+
+expose(withErrorNormalization(new VaultWorkerApi()));
 
 export default VaultWorkerApi;
