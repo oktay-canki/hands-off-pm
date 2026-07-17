@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { VaultProvider } from '@/context/VaultContext';
 import './globals.css';
+import { MotionConfig } from 'framer-motion';
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <VaultProvider>{children}</VaultProvider>
+        <VaultProvider>
+          <MotionConfig reducedMotion="user">{children}</MotionConfig>
+        </VaultProvider>
       </body>
     </html>
   );
