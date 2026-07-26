@@ -1,9 +1,13 @@
 'use client';
+import Button from '@/components/common/Button';
+import Input from '@/components/common/Input';
 import PasswordInputWithGenerator from '@/components/common/PasswordInputWithGenerator';
+import Textarea from '@/components/common/Textarea';
 import { useVault } from '@/context/VaultContext';
 import VaultEntry from '@/modules/vault/types/VaultEntry';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 type Props = {
   defaultValues: VaultEntry;
@@ -36,8 +40,10 @@ export default function EditEntryForm({ defaultValues }: Props) {
       await vault.updateEntry(defaultValues.itemId, updatedEntry);
       router.back();
     } catch (error) {
-      if (error instanceof Error)
-        alert(error.message || 'Failed to update entry');
+      let msg = 'Failed to update entry';
+      if (error instanceof Error && error.message) msg = error.message;
+
+      toast.error(msg);
       console.log(error);
     } finally {
       setIsLoading(false);
@@ -46,42 +52,67 @@ export default function EditEntryForm({ defaultValues }: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        placeholder="title"
-        onChange={(e) => setTitle(e.target.value)}
-        value={title}
-      />
-      <input
-        type="text"
-        placeholder="username"
-        onChange={(e) => {
-          const val = e.target.value;
-          setUsername(val != '' ? val : undefined);
-        }}
-        value={username ?? ''}
-      />
-      <PasswordInputWithGenerator value={password} onChange={setPassword} />
-      <input
-        type="text"
-        placeholder="URL"
-        onChange={(e) => {
-          const val = e.target.value;
-          setUrl(val != '' ? val : undefined);
-        }}
-        value={url ?? ''}
-      />
-      <textarea
-        placeholder="Notes"
-        onChange={(e) => {
-          const val = e.target.value;
-          setNotes(val != '' ? val : undefined);
-        }}
-        defaultValue={notes ?? ''}
-      ></textarea>
-      <button type="submit" disabled={isLoading}>
+      <div className="mb-4">
+        <label className="block px-2 mb-1">Title</label>
+        <Input
+          placeholder="Title"
+          onChange={(e) => setTitle(e.target.value)}
+          value={title}
+          className="w-full"
+          required
+        />
+      </div>
+
+      <div className="mb-4">
+        <label className="block px-2 mb-1">Username</label>
+        <Input
+          placeholder="Username"
+          onChange={(e) => {
+            const val = e.target.value;
+            setUsername(val != '' ? val : undefined);
+          }}
+          value={username ?? ''}
+          className="w-full"
+        />
+      </div>
+
+      <div className="mb-4">
+        <label className="block px-2 mb-1">Password</label>
+        <PasswordInputWithGenerator
+          value={password}
+          onChange={setPassword}
+          required
+        />
+      </div>
+
+      <div className="mb-4">
+        <label className="block px-2 mb-1">URL</label>
+        <Input
+          placeholder="URL e.g. https://example.com"
+          onChange={(e) => {
+            const val = e.target.value;
+            setUrl(val != '' ? val : undefined);
+          }}
+          value={url ?? ''}
+          className="w-full"
+        />
+      </div>
+
+      <div className="mb-4">
+        <label className="block px-2 mb-1">Notes</label>
+        <Textarea
+          placeholder="Notes"
+          onChange={(e) => {
+            const val = e.target.value;
+            setNotes(val != '' ? val : undefined);
+          }}
+          defaultValue={notes ?? ''}
+        ></Textarea>
+      </div>
+
+      <Button type="submit" disabled={isLoading} className="w-full" size="lg">
         Save
-      </button>
+      </Button>
     </form>
   );
 }

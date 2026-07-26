@@ -1,16 +1,26 @@
 'use client';
 
+import Button from '@/components/common/Button';
+import Input from '@/components/common/Input';
 import PasswordGenerator, {
   DEFAULT_GENERATOR_OPTIONS,
 } from '@/modules/password-generator/PasswordGenerator';
-import { useEffect, useState } from 'react';
+import cn from '@/utils/cn';
+import { Shuffle } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 type Props = {
   value?: string;
   onChange?: (password: string) => void;
+  onUsePassword?: (password: string) => void;
 };
 
-export default function PasswordGeneratorControl({ value, onChange }: Props) {
+export default function PasswordGeneratorControl({
+  value,
+  onChange,
+  onUsePassword,
+}: Props) {
   const [generatedPassword, setGeneratedPassword] = useState(value ?? '');
 
   // generator options
@@ -34,19 +44,20 @@ export default function PasswordGeneratorControl({ value, onChange }: Props) {
     DEFAULT_GENERATOR_OPTIONS.excludeAmbiguousSymbols,
   );
 
+  // Generate an initial password exactly once, on mount, if none was provided.
+  const didInit = useRef(false);
   useEffect(() => {
-    function generate() {
+    if (didInit.current) return;
+    didInit.current = true;
+
+    if (!generatedPassword) {
       const generator = new PasswordGenerator();
       const pw = generator.generate();
       setGeneratedPassword(pw);
+      onChange?.(pw);
     }
-
-    if (!generatedPassword) generate();
-  }, [generatedPassword]);
-
-  useEffect(() => {
-    onChange?.(generatedPassword);
-  }, [onChange, generatedPassword]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function generateNewPassword() {
     try {
@@ -61,91 +72,120 @@ export default function PasswordGeneratorControl({ value, onChange }: Props) {
         excludeAmbiguousSymbols,
       });
       setGeneratedPassword(pw);
+      onChange?.(pw);
     } catch (error) {
-      if (error instanceof Error) {
-        alert(
-          error.message ??
-            'An error occured while generating password with given options.',
-        );
+      let msg =
+        'An error occured while generating password with given options.';
+      if (error instanceof Error && error.message) {
+        msg = error.message;
       }
+
+      toast.error(msg);
     }
   }
 
   return (
-    <div>
-      <div>
-        <div>
-          <input
-            id="pw-length"
-            type="number"
-            onChange={(e) => setLength(Number(e.target.value))}
-            min={8}
-            max={32}
-            defaultValue={8}
-          />
-        </div>
-        <div>
-          <input
-            id="opt-uppercase"
-            type="checkbox"
-            checked={includeUppercase}
-            onChange={(e) => setIncludeUpperCase(e.target.checked)}
-          />
-          <label htmlFor="opt-uppercase">A-Z</label>
-        </div>
-        <div>
-          <input
-            id="opt-lowercase"
-            type="checkbox"
-            checked={includeLowercase}
-            onChange={(e) => setIncludeLowerCase(e.target.checked)}
-          />
-          <label htmlFor="opt-lowercase">a-z</label>
-        </div>
-        <div>
-          <input
-            id="opt-numbers"
-            type="checkbox"
-            checked={includeNumbers}
-            onChange={(e) => setIncludeNumbers(e.target.checked)}
-          />
-          <label htmlFor="opt-numbers">0-9</label>
-        </div>
-        <div>
-          <input
-            id="opt-symbols"
-            type="checkbox"
-            checked={includeSymbols}
-            onChange={(e) => setIncludeSymbols(e.target.checked)}
-          />
-          <label htmlFor="opt-symbols">!@#$%^&*</label>
-        </div>
-        <div>
-          <input
-            id="opt-exclude-similar"
-            type="checkbox"
-            checked={excludeSimilarCharacters}
-            onChange={(e) => setExcludeSimilarCharacters(e.target.checked)}
-          />
-          <label htmlFor="opt-exclude-similar">
-            Exclude similar characters
-          </label>
-        </div>
-        <div>
-          <input
-            id="opt-exclude-ambiguous"
-            type="checkbox"
-            checked={excludeAmbiguousSymbols}
-            onChange={(e) => setExcludeAmbiguousSymbols(e.target.checked)}
-          />
-          <label htmlFor="opt-exclude-ambiguous">
-            Exclude Ambiguous Symbols
-          </label>
-        </div>
+    <>
+      <div className="flex gap-2 mb-2">
+        <Button
+          className="flex-1"
+          onClick={() => onUsePassword?.(generatedPassword)}
+          variant="outline"
+        >
+          Use this password
+        </Button>
+        <Button className="flex-1 gap-2" onClick={generateNewPassword}>
+          Generate <Shuffle size={16} />
+        </Button>
       </div>
-      <button type="button" onClick={generateNewPassword}>
-        Generate Password
-      </button>
-    </div>
+      <div className="w-full mb-4">
+        <label htmlFor="pw-length" className="block text-center">
+          Length
+        </label>
+        <Input
+          id="pw-length"
+          type="number"
+          min={8}
+          max={32}
+          defaultValue={8}
+          onChange={(e) => setLength(Number(e.target.value))}
+          className="w-full text-center"
+        />
+      </div>
+
+      <div className="flex items-center justify-center mb-4 gap-2 border border-surface px-2 pt-6 pb-4 rounded-md relative">
+        <label className="block absolute top-0 left-0 translate-x-4 -translate-y-1/2 bg-background px-2">
+          Characters
+        </label>
+        <Button
+          className={cn(
+            'block shrink-0 flex-1',
+            !includeUppercase && 'line-through hover:no-underline',
+            includeUppercase && 'hover:line-through',
+          )}
+          variant={includeUppercase ? 'primary' : 'ghost'}
+          onClick={() => setIncludeUpperCase((prev) => !prev)}
+        >
+          A - Z
+        </Button>
+
+        <Button
+          className={cn(
+            'block shrink-0 flex-1',
+            !includeLowercase && 'line-through hover:no-underline',
+            includeLowercase && 'hover:line-through',
+          )}
+          variant={includeLowercase ? 'primary' : 'ghost'}
+          onClick={() => setIncludeLowerCase((prev) => !prev)}
+        >
+          a - z
+        </Button>
+
+        <Button
+          className={cn(
+            'block shrink-0 flex-1',
+            !includeNumbers && 'line-through hover:no-underline',
+            includeNumbers && 'hover:line-through',
+          )}
+          variant={includeNumbers ? 'primary' : 'ghost'}
+          onClick={() => setIncludeNumbers((prev) => !prev)}
+        >
+          0-9
+        </Button>
+
+        <Button
+          className={cn(
+            'block shrink-0 flex-2',
+            !includeSymbols && 'line-through hover:no-underline',
+            includeSymbols && 'hover:line-through',
+          )}
+          variant={includeSymbols ? 'primary' : 'ghost'}
+          onClick={() => setIncludeSymbols((prev) => !prev)}
+        >
+          !@#$%^&*
+        </Button>
+      </div>
+
+      <div className="flex flex-col gap-2 items-center justify-center border border-surface px-2 pt-6 pb-4 rounded-sm relative">
+        <label className="block absolute top-0 left-0 translate-x-4 -translate-y-1/2 bg-background px-2">
+          Other
+        </label>
+        <Button
+          className={cn('block shrink-0 w-full')}
+          variant={excludeSimilarCharacters ? 'primary' : 'outline'}
+          onClick={() => setExcludeSimilarCharacters((prev) => !prev)}
+        >
+          Exclude similar characters
+        </Button>
+
+        <Button
+          className={cn('block shrink-0 w-full')}
+          variant={excludeAmbiguousSymbols ? 'primary' : 'outline'}
+          onClick={() => setExcludeAmbiguousSymbols((prev) => !prev)}
+        >
+          Exclude Ambiguous Symbols
+        </Button>
+      </div>
+    </>
   );
 }

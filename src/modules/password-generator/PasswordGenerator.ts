@@ -16,9 +16,16 @@ export interface PasswordOptions {
   requireEveryCategory?: boolean;
 }
 
+export type PasswordStrengthLabel =
+  | 'Very Weak'
+  | 'Weak'
+  | 'Reasonable'
+  | 'Strong'
+  | 'Very Strong';
+
 export interface PasswordStrength {
   entropyBits: number;
-  label: 'Very Weak' | 'Weak' | 'Reasonable' | 'Strong' | 'Very Strong';
+  label: PasswordStrengthLabel;
   poolSize: number;
 }
 

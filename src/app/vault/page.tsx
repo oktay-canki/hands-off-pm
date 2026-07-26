@@ -1,15 +1,12 @@
 'use client';
-
-import AddEntryLink from '@/components/entry/AddEntryLink';
 import EntryList from '@/components/entry/EntryList';
-import SessionInfo from '@/components/SessionInfo';
+import SessionInfo from '@/components/auth/SessionInfo';
 
 export default function VaultHomePage() {
   return (
-    <>
+    <div className="w-full h-full py-10">
       <SessionInfo />
-      <AddEntryLink />
       <EntryList />
-    </>
+    </div>
   );
 }

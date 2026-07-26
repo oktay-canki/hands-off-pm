@@ -1,10 +1,12 @@
 'use client';
+import Button from '@/components/common/Button';
 import LoadUserForm from '@/components/forms/LoadUserForm';
 import UnlockVaultForm from '@/components/forms/UnlockVaultForm';
 import { useVault } from '@/context/VaultContext';
 import { SERVER_SNAPSHOT } from '@/hooks/useVaultSnapshot';
 import Link from 'next/link';
 import { useState, useSyncExternalStore } from 'react';
+import { toast } from 'sonner';
 
 const UnlockVaultPanel = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -26,10 +28,11 @@ const UnlockVaultPanel = () => {
       const normalizedUsername = uname.trim();
       await vaultService.load(normalizedUsername);
     } catch (error) {
-      if (error instanceof Error) alert(error.message);
-      else {
-        alert('Failed to load vault');
-      }
+      let msg = 'Failed to load vault';
+
+      if (error instanceof Error && error.message) msg = error.message;
+
+      toast.error(msg);
       console.log(error);
     } finally {
       setIsLoading(false);
@@ -38,7 +41,7 @@ const UnlockVaultPanel = () => {
 
   async function unlockVault(username: string, masterPassword: string) {
     if (!username || !masterPassword) {
-      alert("Username or masterpassword can't be empty");
+      toast.error("Username or masterpassword can't be empty");
       return;
     }
 
@@ -46,10 +49,11 @@ const UnlockVaultPanel = () => {
     try {
       await vaultService.unlock(masterPassword);
     } catch (error) {
-      if (error instanceof Error) alert(error.message);
-      else {
-        alert('Failed to unlock vault');
-      }
+      let msg = 'Failed to unlock vault';
+
+      if (error instanceof Error && error.message) msg = error.message;
+
+      toast.error(msg);
       console.log(error);
     } finally {
       setIsLoading(false);
@@ -60,7 +64,7 @@ const UnlockVaultPanel = () => {
     try {
       vaultService.clearUser();
     } catch {
-      alert('Failed to clear current user information');
+      toast.error('Failed to clear current user information');
     }
   }
 
@@ -68,11 +72,15 @@ const UnlockVaultPanel = () => {
     return (
       <>
         <LoadUserForm onSubmit={loadUser} isLoading={isLoading} />
-        <Link
-          href="/auth/register"
-          className="block w-fit mx-auto text-accent underline mt-10 px-4 p-2"
-        >
-          Create A New Vault
+        <div className="w-full flex items-center justify-center gap-4 my-12 px-2">
+          <div className="flex-1 bg-surface h-0.5"></div>
+          <div className="w-1 h-1 rounded-full bg-surface"></div>
+          <div className="flex-1 bg-surface h-0.5"></div>
+        </div>
+        <Link href="/auth/register">
+          <Button className="w-full" variant="accent-outline" size="lg">
+            Create Vault
+          </Button>
         </Link>
       </>
     );

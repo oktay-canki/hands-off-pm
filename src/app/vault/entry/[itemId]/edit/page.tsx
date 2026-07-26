@@ -1,5 +1,6 @@
 'use client';
 
+import BackButton from '@/components/common/BackButton';
 import EditEntryForm from '@/components/forms/EditEntryForm';
 import useVaultSnapshot from '@/hooks/useVaultSnapshot';
 import { use, useMemo } from 'react';
@@ -20,9 +21,13 @@ export default function ItemEditPage({ params }: { params: Promise<Params> }) {
   if (!entry) return <>No such entry found</>;
 
   return (
-    <>
-      <h4>Here to edit: {itemId}</h4>
-      <EditEntryForm defaultValues={entry} />
-    </>
+    <div className="w-full h-full">
+      <div className="pl-8 pt-8">
+        <BackButton />
+      </div>
+      <div className="w-10/12 max-w-md mx-auto py-20">
+        <EditEntryForm defaultValues={entry} />
+      </div>
+    </div>
   );
 }

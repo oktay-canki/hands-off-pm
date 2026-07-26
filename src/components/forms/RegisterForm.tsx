@@ -1,42 +1,11 @@
 'use client';
 import PasswordInput from '@/components/common/PasswordInput';
 import { useVault } from '@/context/VaultContext';
-import { Vault } from 'lucide-react';
 import { useState } from 'react';
-import { motion, type Variants } from 'framer-motion';
-
 import ButtonLoader from '@/components/common/ButtonLoader';
-
-const container: Variants = {
-  hidden: {},
-  show: {
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
-  },
-};
-
-const item: Variants = {
-  hidden: { opacity: 0, x: 12 },
-  show: { opacity: 1, x: 0, transition: { duration: 0.35, ease: 'easeOut' } },
-};
-
-const rotatingVault: Variants = {
-  hidden: { opacity: 0.8, y: 16, rotate: 360 },
-  show: {
-    opacity: 1,
-    y: 0,
-    rotate: 0,
-    transition: { duration: 0.4, ease: 'easeOut' },
-  },
-};
-
-const slideInText: Variants = {
-  hidden: { opacity: 0, x: 24 },
-  show: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.4, ease: 'easeOut' },
-  },
-};
+import Input from '@/components/common/Input';
+import Button from '@/components/common/Button';
+import { toast } from 'sonner';
 
 const RegisterForm = () => {
   const vaultService = useVault();
@@ -61,7 +30,7 @@ const RegisterForm = () => {
 
   async function register() {
     if (await vaultService.vaultExists(username)) {
-      alert('A vault with this username already exists');
+      toast.error('A vault with this username already exists');
       return;
     }
 
@@ -70,54 +39,41 @@ const RegisterForm = () => {
     try {
       await vaultService.register(username.trim(), masterPassword);
       clearFormFields();
-      alert('Successfully created a new vault registry');
+      toast.success('Created a new vault');
     } catch (error) {
-      if (error instanceof Error)
-        alert(error.message || 'Failed to create new vault registry');
+      let msg = 'Failed to create new vault registry';
+      if (error instanceof Error && error.message) msg = error.message;
+
+      toast.error(msg);
       console.log(error);
     }
   }
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show">
-      <form onSubmit={handleSubmit}>
-        <div className="mb-14">
-          <motion.div variants={rotatingVault}>
-            <Vault size={82} strokeWidth={1} className="mx-auto mb-4" />
-          </motion.div>
-          <motion.div variants={slideInText}>
-            <h2 className="title w-full text-center">Create Vault</h2>
-          </motion.div>
-        </div>
+    <form onSubmit={handleSubmit}>
+      <Input
+        placeholder="Username"
+        onChange={(e) => setUsername(e.target.value)}
+        value={username}
+        autoFocus={true}
+        variant="outline"
+        size="lg"
+        className="w-full text-center mb-2"
+      />
 
-        <motion.div variants={item}>
-          <input
-            type="text"
-            placeholder="Username"
-            onChange={(e) => setUsername(e.target.value)}
-            value={username}
-            className="input muted-input w-full large-text mb-4"
-            autoFocus={true}
-          />
-        </motion.div>
-        <motion.div variants={item}>
-          <PasswordInput
-            value={masterPassword}
-            onChange={(e) => setMasterPassword(e.target.value)}
-            className="muted-input"
-          />
-        </motion.div>
-        <motion.div variants={item}>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="btn btn-secondary w-full mt-4"
-          >
-            {isLoading ? <ButtonLoader /> : 'Create'}
-          </button>
-        </motion.div>
-      </form>
-    </motion.div>
+      <PasswordInput
+        value={masterPassword}
+        onChange={(e) => setMasterPassword(e.target.value)}
+        variant="outline"
+        size="lg"
+        className="text-center"
+        containerClassName="mb-4"
+      />
+
+      <Button type="submit" disabled={isLoading} size="lg" className="w-full">
+        {isLoading ? <ButtonLoader /> : 'Create Vault'}
+      </Button>
+    </form>
   );
 };
 

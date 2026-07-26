@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 type Props = {
   entryTitle: string;
@@ -17,7 +18,7 @@ export default function DeleteEntryModal({
 
   function handleConfirm() {
     if (confirmTitle != entryTitle) {
-      alert('Confirm title does not match actual title!');
+      toast.error('Confirm title does not match actual title!');
       return;
     }
 

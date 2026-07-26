@@ -1,13 +1,16 @@
 'use client';
 
-import PasswordInput from '@/components/common/PasswordInput';
-import { InputHTMLAttributes, useState } from 'react';
+import PasswordInput, {
+  PasswordInputProps,
+} from '@/components/common/PasswordInput';
+import { useState } from 'react';
 import PasswordGeneratorControl from '@/components/common/PasswordGeneratorControl';
 
-type Props = Omit<
-  InputHTMLAttributes<HTMLInputElement>,
-  'value' | 'onChange'
-> & {
+import Button from '@/components/common/Button';
+import { Dices, X } from 'lucide-react';
+import cn from '@/utils/cn';
+
+type Props = Omit<PasswordInputProps, 'value' | 'onChange'> & {
   value: string;
   onChange: (password: string) => void;
 };
@@ -20,45 +23,32 @@ export default function PasswordInputWithGenerator({
   const [showGenerator, setShowGenerator] = useState(false);
 
   return (
-    <>
-      <PasswordInput
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        visible={showGenerator}
-        {...rest}
-      />
+    <div>
+      <div className="flex flex-1 mb-2">
+        <PasswordInput
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          visible={showGenerator}
+          containerClassName="w-full"
+          className={cn(showGenerator && 'text-center tracking-widest')}
+          {...rest}
+        />
 
+        <Button
+          onClick={() => setShowGenerator((prev) => !prev)}
+          variant="ghost"
+          className="p-2 ml-2"
+        >
+          {!showGenerator ? <Dices size={24} /> : <X size={24} />}
+        </Button>
+      </div>
       {showGenerator && (
-        <>
-          <button
-            type="button"
-            onClick={() => {
-              setShowGenerator(false);
-            }}
-          >
-            Use this password
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              onChange('');
-              setShowGenerator(false);
-            }}
-          >
-            Cancel
-          </button>
-          <PasswordGeneratorControl
-            value={value}
-            onChange={(pw) => onChange(pw)}
-          />
-        </>
+        <PasswordGeneratorControl
+          value={value}
+          onChange={(pw) => onChange(pw)}
+          onUsePassword={() => setShowGenerator(false)}
+        />
       )}
-
-      {!showGenerator && (
-        <button onClick={() => setShowGenerator(true)}>
-          Password Generator
-        </button>
-      )}
-    </>
+    </div>
   );
 }
