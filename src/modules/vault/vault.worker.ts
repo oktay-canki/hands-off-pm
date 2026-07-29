@@ -1,9 +1,13 @@
 // vault.worker.ts
 import { createCryptoService } from '@/lib/bootstrap';
+import StorageService from '@/modules/storage/StorageService';
+import createVault from '@/modules/vault/createVault';
 import EncryptedVault from '@/modules/vault/types/EncryptedVault';
 import VaultEntry from '@/modules/vault/types/VaultEntry';
 import VaultItem from '@/modules/vault/types/VaultItem';
 import VaultEngine from '@/modules/vault/VaultEngine';
+import { AppError } from '@/shared/error/AppError';
+import UnknownError from '@/shared/error/UnknownError';
 import { expose } from 'comlink';
 
 class VaultWorkerApi {
@@ -50,8 +54,50 @@ class VaultWorkerApi {
   encryptVault(): EncryptedVault {
     return this.engine!.encryptVault();
   }
+
+  async registerVault(userId: string, masterPassword: string) {
+    const { cryptoService } = await createCryptoService();
+    const salt = cryptoService.generateSalt();
+    const masterKey = await cryptoService.deriveMasterKey(masterPassword, salt);
+    const vaultKey = cryptoService.deriveVaultKey(masterKey);
+    const vault = createVault(userId, salt);
+    const encryptedVault = cryptoService.encryptVault(vault, vaultKey);
+    const storageService = new StorageService();
+    await storageService.persistVault(encryptedVault);
+    this.engine = new VaultEngine(encryptedVault, cryptoService);
+    await this.engine.unlock(masterPassword);
+  }
 }
 
-expose(new VaultWorkerApi());
+function normalizeError(error: unknown): AppError {
+  if (error instanceof AppError) return error;
+  console.error('Unexpected worker error:', error);
+  return new UnknownError();
+}
+
+function withErrorNormalization<T extends object>(target: T): T {
+  return new Proxy(target, {
+    get(obj, prop, receiver) {
+      const value = Reflect.get(obj, prop, receiver);
+      if (typeof value !== 'function') return value;
+
+      return function (this: unknown, ...args: unknown[]) {
+        try {
+          const result = value.apply(obj, args);
+          if (result instanceof Promise) {
+            return result.catch((error: unknown) => {
+              throw normalizeError(error);
+            });
+          }
+          return result;
+        } catch (error) {
+          throw normalizeError(error);
+        }
+      };
+    },
+  });
+}
+
+expose(withErrorNormalization(new VaultWorkerApi()));
 
 export default VaultWorkerApi;

@@ -1,0 +1,78 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-background: #00272b; /* jet black */
+  --color-primary: #00363d; /* dark teal*/
+  --color-surface: #d6fff6; /* frozen water */
+  --color-secondary: #55868c; /* dark cyan */
+  --color-accent: #ffc857; /* golden pollen */
+  --color-danger: #dc3545;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-surface);
+}
+
+/* Text utilities */
+@utility title {
+  @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight;
+}
+@utility heading {
+  @apply text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight leading-snug;
+}
+@utility subtitle {
+  @apply text-lg sm:text-xl md:text-2xl font-medium leading-snug;
+}
+@utility card-title {
+  @apply text-base sm:text-lg md:text-xl font-semibold leading-tight;
+}
+@utility body-text {
+  @apply text-sm sm:text-base md:text-lg font-normal leading-relaxed;
+}
+@utility small-text {
+  @apply text-xs sm:text-sm font-normal leading-normal;
+}
+@utility micro-text {
+  @apply text-[0.65rem] sm:text-xs font-medium uppercase tracking-wide;
+}
+@utility eyebrow {
+  @apply text-xs sm:text-sm font-semibold uppercase tracking-widest;
+}
+@utility link-text {
+  @apply text-sm sm:text-base font-medium underline-offset-2 hover:underline transition-colors;
+}
+
+@layer {
+  /* Input fields */
+  input[type='button'],
+  button {
+    @apply hover:cursor-pointer outline-none;
+  }
+
+  /* Chrome, Safari, Edge, Opera */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Firefox */
+  input[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+}

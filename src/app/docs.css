@@ -1,0 +1,34 @@
+@reference "./globals.css";
+
+h1 {
+  @apply title;
+}
+h2 {
+  @apply heading;
+}
+h3 {
+  @apply subtitle;
+}
+p {
+  @apply body-text;
+}
+
+ul {
+  @apply body-text pl-6 space-y-6;
+}
+
+code {
+  @apply bg-secondary px-1 py-0.5 rounded-sm;
+}
+
+.nav-link {
+  @apply p-4 hover:bg-secondary rounded-l-sm;
+}
+
+.trade-off-pill {
+  @apply bg-primary py-0.5 px-2 rounded-md w-fit font-bold small-text;
+}
+
+.limitation-pill {
+  @apply bg-accent text-black py-0.5 px-2 rounded-md w-fit font-bold small-text;
+}
