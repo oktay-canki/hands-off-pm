@@ -18,6 +18,14 @@ class StorageService {
   private async getDb(): Promise<IDBPDatabase<ZKPMSchema>> {
     if (this.db) return this.db;
 
+    // Request persistent storage
+    if (navigator.storage?.persist) {
+      const isPersisted = await navigator.storage.persisted();
+      if (!isPersisted) {
+        await navigator.storage.persist();
+      }
+    }
+
     this.db = await openDB<ZKPMSchema>(DB_NAME, DB_VERSION, {
       upgrade(db) {
         db.createObjectStore('vaults', { keyPath: 'userId' });
