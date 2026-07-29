@@ -24,3 +24,11 @@ code {
 .nav-link {
   @apply p-4 hover:bg-secondary rounded-l-sm;
 }
+
+.trade-off-pill {
+  @apply bg-primary py-0.5 px-2 rounded-md w-fit font-bold small-text;
+}
+
+.limitation-pill {
+  @apply bg-accent text-black py-0.5 px-2 rounded-md w-fit font-bold small-text;
+}

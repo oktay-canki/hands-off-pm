@@ -4,6 +4,7 @@ export default function TradeoffsLimitationsPage() {
       <h1 className="mb-12">Trade-offs & Limitations</h1>
 
       <div className="mb-18">
+        <h4 className="trade-off-pill">Trade-off</h4>
         <h2 className="mb-4">No Master-Password Recovery</h2>
         <p className="mb-2">
           There is no &quot;forgot password&quot; option. If you lose your
@@ -24,6 +25,7 @@ export default function TradeoffsLimitationsPage() {
       </div>
 
       <div className="mb-18">
+        <h4 className="trade-off-pill">Trade-off</h4>
         <h2 className="mb-4">No Deleted-Entry Recovery</h2>
         <p className="mb-2">
           Deleting an entry is permanent. When you delete an entry, its
@@ -56,6 +58,7 @@ export default function TradeoffsLimitationsPage() {
       </div>
 
       <div className="mb-18 scroll-mt-20" id="tab-scoped-unlocked-state">
+        <h4 className="trade-off-pill">Trade-off</h4>
         <h2 className="mb-4">Tab-Scoped Unlocked State</h2>
         <p className="mb-2">
           Unlocking the vault is scoped to a single browser tab, not the browser
@@ -85,6 +88,37 @@ export default function TradeoffsLimitationsPage() {
       </div>
 
       <div className="mb-18">
+        <h3 className="mb-2">
+          A related wrinkle: message-passing copies data, it doesn&apos;t move
+          it
+        </h3>
+        <p className="mb-2">
+          Comlink communicates with the worker via{' '}
+          <code className="mx-1">postMessage</code>, which uses the structured
+          clone algorithm to serialize data across the thread boundary. Each
+          call that sends or receives entry data — for example,{' '}
+          <code className="mx-1">getEntries()</code> returning decrypted entries
+          from the worker back to the main thread — creates a new copy of that
+          data on the receiving side, distinct from whatever the worker held
+          internally. This means decrypted entries may briefly exist in more
+          than one place in memory simultaneously: inside the worker, and again
+          on the main thread as <code className="mx-1">cachedEntries</code>.
+        </p>
+        <p>
+          Terminating the worker clears its copy. But any copies already cloned
+          onto the main thread (or held in variables like
+          <code className="mx-1">cachedEntries</code>) are subject to the same
+          GC-timing limitations described above, and worker termination does
+          nothing to accelerate their collection. Every{' '}
+          <code className="mx-1">postMessage</code>
+          round-trip is a potential additional site where decrypted data
+          momentarily exists, not just the two obvious endpoints (worker memory
+          and app state).
+        </p>
+      </div>
+
+      <div className="mb-18">
+        <h4 className="limitation-pill">Limitation</h4>
         <h2 className="mb-4">JavaScript Memory Handling</h2>
         <p className="mb-2">
           <code className="mx-1">lock()</code> clears the vault&apos;s unlocked
@@ -133,40 +167,9 @@ export default function TradeoffsLimitationsPage() {
         </p>
       </div>
 
-      <div className="mb-18">
-        <h3 className="mb-2">
-          A related wrinkle: message-passing copies data, it doesn&apos;t move
-          it
-        </h3>
-        <p className="mb-2">
-          Comlink communicates with the worker via{' '}
-          <code className="mx-1">postMessage</code>, which uses the structured
-          clone algorithm to serialize data across the thread boundary. Each
-          call that sends or receives entry data — for example,{' '}
-          <code className="mx-1">getEntries()</code> returning decrypted entries
-          from the worker back to the main thread — creates a new copy of that
-          data on the receiving side, distinct from whatever the worker held
-          internally. This means decrypted entries may briefly exist in more
-          than one place in memory simultaneously: inside the worker, and again
-          on the main thread as <code className="mx-1">cachedEntries</code>.
-        </p>
-        <p>
-          Terminating the worker clears its copy. But any copies already cloned
-          onto the main thread (or held in variables like
-          <code className="mx-1">cachedEntries</code>) are subject to the same
-          GC-timing limitations described above, and worker termination does
-          nothing to accelerate their collection. Every{' '}
-          <code className="mx-1">postMessage</code>
-          round-trip is a potential additional site where decrypted data
-          momentarily exists, not just the two obvious endpoints (worker memory
-          and app state).
-        </p>
-      </div>
-
       <div className="mb-4">
-        <h3 className="mb-2">
-          A known limitation: multiple tabs don&apos;t coordinate
-        </h3>
+        <h4 className="limitation-pill">Limitation</h4>
+        <h2 className="mb-2">Multiple tabs don&apos;t coordinate</h2>
         <p className="mb-2">
           Because <code className="mx-1">VaultProvider</code> creates a fresh
           <code className="mx-1">VaultService</code> (and fresh worker) per tab,
