@@ -1,3 +1,4 @@
+import AppConfig from '@/app.config';
 import StorageService from '@/modules/storage/StorageService';
 import FailedToAddEntryError from '@/modules/vault/errors/FailedToAddEntryError';
 import FailedToDeleteEntryError from '@/modules/vault/errors/FailedToDeleteEntryError';
@@ -9,11 +10,10 @@ import ItemDoesNotExistError from '@/modules/vault/errors/ItemDoesNotExistError'
 import VaultLockedError from '@/modules/vault/errors/VaultLockedError';
 import VaultNotFoundError from '@/modules/vault/errors/VaultNotFoundError';
 import VaultNotLoadedError from '@/modules/vault/errors/VaultNotLoadedError';
+import { InactivityWatcher } from '@/modules/vault/InactivityWatcher';
 import EncryptedVault from '@/modules/vault/types/EncryptedVault';
 import VaultEntry from '@/modules/vault/types/VaultEntry';
 import VaultWorkerApi from '@/modules/vault/vault.worker';
-import { AppError } from '@/shared/error/AppError';
-import UnknownError from '@/shared/error/UnknownError';
 import { releaseProxy, Remote, wrap } from 'comlink';
 
 type VaultStatus = {
@@ -43,6 +43,8 @@ class VaultService {
   private unlocking: boolean = false;
   private currentSnapshot: VaultSnapshot;
 
+  private readonly inactivityWatcher: InactivityWatcher;
+
   private status: VaultStatus = {
     isLocked: true,
     isLoading: false,
@@ -55,6 +57,16 @@ class VaultService {
       status: { ...this.status },
       entries: [...this.cachedEntries],
     };
+    this.inactivityWatcher = new InactivityWatcher({
+      timeoutMs: 5 * 60 * 1000,
+      onTimeout: () => this.lock(),
+      onTick: (msRemaining) => {
+        const totalSeconds = Math.ceil(msRemaining / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        document.title = `${AppConfig.APP_NAME} (${minutes}:${seconds.toString().padStart(2, '0')})`;
+      },
+    });
   }
 
   private mutationQueue: Promise<void> = Promise.resolve();
@@ -105,6 +117,7 @@ class VaultService {
       this.cachedEntries = await this.workerApi.getEntries();
       this.updateStatus({ isLocked: false, isLoading: false });
       this.notify();
+      this.inactivityWatcher.start();
     } catch (e) {
       console.log(e);
       // Assume invalid credentials
@@ -124,6 +137,8 @@ class VaultService {
     this.worker = null;
     this.cachedEntries = [];
     this.mutationQueue = Promise.resolve();
+    this.inactivityWatcher.stop();
+    document.title = AppConfig.APP_NAME;
     this.updateStatus({ isLocked: true, isLoading: false });
     this.notify();
   }
@@ -273,13 +288,6 @@ class VaultService {
     this.status = { ...this.status, ...updates };
   }
 
-  private toAppError(error: unknown): AppError {
-    if (error instanceof AppError) return error;
-    if (error instanceof Error)
-      return new AppError({ message: error.message, code: '' });
-    return new UnknownError();
-  }
-
   async vaultExists(userId: string): Promise<boolean> {
     let ret = true;
 
@@ -313,6 +321,7 @@ class VaultService {
         isLoading: false,
       });
       this.notify();
+      this.inactivityWatcher.start();
     } catch (e) {
       console.log(e);
       const error = new FailedToRegisterError();
