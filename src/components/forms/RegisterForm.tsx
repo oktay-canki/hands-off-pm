@@ -58,7 +58,8 @@ const RegisterForm = () => {
         autoFocus={true}
         variant="outline"
         size="lg"
-        className="w-full text-center mb-2"
+        className="w-full text-center mb-4"
+        required
       />
 
       <PasswordInput
@@ -67,8 +68,15 @@ const RegisterForm = () => {
         variant="outline"
         size="lg"
         className="text-center"
-        containerClassName="mb-4"
+        containerClassName="mb-1"
+        placeholder="Master Password"
+        required
+        minLength={8}
       />
+      <p className="text-accent small-text mb-8">
+        <strong>Important</strong>: Masterpassword is un-recoverable. Make sure
+        your masterpassword is a strong and hard to guess password.
+      </p>
 
       <Button type="submit" disabled={isLoading} size="lg" className="w-full">
         {isLoading ? <ButtonLoader /> : 'Create Vault'}

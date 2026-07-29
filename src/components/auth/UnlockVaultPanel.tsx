@@ -72,7 +72,7 @@ const UnlockVaultPanel = () => {
     return (
       <>
         <LoadUserForm onSubmit={loadUser} isLoading={isLoading} />
-        <div className="w-full flex items-center justify-center gap-4 my-12 px-2">
+        <div className="w-8/12 mx-auto flex items-center justify-center gap-4 my-12 px-2">
           <div className="flex-1 bg-surface h-0.5"></div>
           <div className="w-1 h-1 rounded-full bg-surface"></div>
           <div className="flex-1 bg-surface h-0.5"></div>
