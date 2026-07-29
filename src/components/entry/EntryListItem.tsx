@@ -1,7 +1,6 @@
 'use client';
 
 import VaultEntry from '@/modules/vault/types/VaultEntry';
-import { useVault } from '@/context/VaultContext';
 import { useEffect, useRef, useState } from 'react';
 import SiteFavicon from '@/components/entry/SiteFavicon';
 import cn from '@/utils/cn';
@@ -17,17 +16,14 @@ type Props = {
   onCheckedChange?: (checked: boolean) => void;
 };
 
-const CLICK_DELAY = 150; // ms — tune to taste, ~200-250ms feels natural
+const CLICK_DELAY = 150; // ms
 
 export default function EntryListItem({
   entry,
   isChecked,
   onCheckedChange,
 }: Props) {
-  const [isDeleting, setIsDeleting] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
-  const vault = useVault();
-
   const menuRef = useRef<HTMLLIElement>(null);
   const clickTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 

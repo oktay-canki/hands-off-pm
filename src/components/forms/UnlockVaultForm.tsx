@@ -1,6 +1,6 @@
 'use client';
 import PasswordInput from '@/components/common/PasswordInput';
-import { CircleUserRound, RotateCw } from 'lucide-react';
+import { RotateCw } from 'lucide-react';
 import { SubmitEvent, useState } from 'react';
 import ButtonLoader from '@/components/common/ButtonLoader';
 import Button from '@/components/common/Button';

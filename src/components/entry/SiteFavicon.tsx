@@ -30,7 +30,9 @@ export default function SiteFavicon({
   }
 
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
+      alt="entry site favicon"
       src={`https://www.google.com/s2/favicons?domain=${domain}&sz=${size * 2}`}
       width={size}
       height={size}

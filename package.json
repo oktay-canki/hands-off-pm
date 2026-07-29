@@ -23,7 +23,6 @@
     "@tailwindcss/postcss": "^4.3.2",
     "clsx": "^2.1.1",
     "comlink": "^4.4.2",
-    "framer-motion": "^12.42.2",
     "idb": "^8.0.3",
     "libsodium-wrappers-sumo": "^0.8.4",
     "lucide-react": "^1.24.0",
