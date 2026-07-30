@@ -1,17 +1,14 @@
 'use client';
-
 import useVaultSnapshot from '@/hooks/useVaultSnapshot';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
-export default function Home() {
+import { ReactNode, useEffect } from 'react';
+
+export default function VaultLayout({ children }: { children: ReactNode }) {
   const { status } = useVaultSnapshot();
   const router = useRouter();
 
   useEffect(() => {
-    if (!status.isLoading && !status.isLocked) {
-      router.replace('/vault');
-    }
     if (!status.isLoading && status.isLocked) {
       router.replace('/auth/login');
     }
@@ -19,5 +16,7 @@ export default function Home() {
 
   if (status.isLoading) return <>Loading...</>;
 
-  return <></>;
+  if (status.isLocked) return null;
+
+  return <>{children}</>;
 }
