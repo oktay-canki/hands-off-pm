@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HandsoffPM
 
-## Getting Started
+A self-hosted, browser-based password manager built with Next.js that runs entirely on your device — no server, no third party, no trust required beyond your own browser.
 
-First, run the development server:
+**🔗 [Live Preview](https://handsoffpm.vercel.app)** · **📖 [Docs](https://handsoffpm.vercel.app/docs)**
+
+> **⚠️ Important**
+> This is an actively developed personal project, not a real-life product. It has not undergone a formal security review. Please don't use it to store real high-stakes credentials. Feedback and issue reports are welcome see the Feedback section.
+
+---
+
+## What it is
+
+Most password managers ask you to trust a server, a third-party audit, or a network connection — even "zero-knowledge" providers still route your data through infrastructure you don't own. HandsoffPM takes a different approach: it's designed to be **self-hosted**, running entirely client-side, so your vault never leaves your device.
+
+You run it, you control it, you can audit it yourself.
+
+## Tech stack
+
+- **Next.js** + **TypeScript** — chosen for flexibility, even though the app currently runs entirely client-side
+- **libsodium** — all cryptography (Argon2id key derivation, ChaCha20-Poly1305 encryption); no custom crypto
+- **Web Worker + Comlink** — vault operations (unlock, encrypt, decrypt) run isolated from the main thread
+- **IndexedDB** — local, encrypted-at-rest storage; only ciphertext ever touches disk
+
+## Highlights
+
+- 🔐 **Zero-knowledge by architecture** — there's no server to leak your data to in the first place
+- 🔑 **Argon2id + ChaCha20-Poly1305** — modern, memory-hard key derivation and authenticated encryption
+- 🧩 **Layered encryption** — entries are encrypted individually, then the vault as a whole is encrypted again at rest
+- 🧠 **Keys live only in memory** — cleared on lock, never persisted
+- 📦 **Self-hosted** — no cloud dependency, no account, no telemetry
+
+## Documentation
+
+The `/docs` route on the live preview covers the full design in depth:
+
+- [Architecture & Tech Stack](https://handsoffpm.vercel.app/docs/architecture)
+- [Cryptographic Design](https://handsoffpm.vercel.app/docs/cryptography)
+- [Threat Model](https://handsoffpm.vercel.app/docs/threat-model)
+- [Storage, Persistence & Data Loss](https://handsoffpm.vercel.app/docs/storage)
+- [Trade-offs & Limitations](https://handsoffpm.vercel.app/docs/tradeoffs-limitations)
+
+## Status
+
+HandsoffPM is under active development. Currently implemented: local vault creation, unlock, and entry encryption/decryption. Planned: export/import
+
+There's no Docker image or packaged app yet — running it means building it yourself. A turnkey setup (Docker, desktop app) is a natural next step.
+
+## Getting started (local development)
 
 ```bash
+git clone git@github.com:oktay-canki/hands-off-pm.git
+cd hands-off-pm
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run lint` – run ESLint
+- `npm run typecheck` – check TypeScript types
+- `npm test` – run tests
+- `npm run check` – run all checks (lint + typecheck + tests)
 
-## Learn More
+## License
 
-To learn more about Next.js, take a look at the following resources:
+This project is licensed under a custom Personal Use License.
+See the LICENSE file for details.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Feedback
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Bug reports, observations, and design critiques are genuinely welcome — please open an issue.
 
-## Deploy on Vercel
+# Security
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+If you discover a security vulnerability, please do not open a public issue.
+Instead, follow the instructions in the [Security Policy](./SECURITY.md#-reporting-a-vulnerability).

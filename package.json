@@ -1,6 +1,12 @@
 {
-  "name": "client",
+  "name": "hands-off-pm",
+  "description": "A self-hosted, browser-based password manager built with Next.js",
+  "license": "SEE LICENSE IN LICENSE",
   "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oktay-canki/hands-off-pm.git"
+  },
   "private": true,
   "scripts": {
     "dev": "next dev",
