@@ -7,7 +7,7 @@ import PasswordGenerator, {
 } from '@/modules/password-generator/PasswordGenerator';
 import cn from '@/utils/cn';
 import { Shuffle } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 type Props = {
@@ -21,7 +21,11 @@ export default function PasswordGeneratorControl({
   onChange,
   onUsePassword,
 }: Props) {
-  const [generatedPassword, setGeneratedPassword] = useState(value ?? '');
+  const [generatedPassword, setGeneratedPassword] = useState(() => {
+    if (value) return value;
+    const generator = new PasswordGenerator();
+    return generator.generate();
+  });
 
   // generator options
   const [length, setLength] = useState(DEFAULT_GENERATOR_OPTIONS.length);
@@ -44,20 +48,11 @@ export default function PasswordGeneratorControl({
     DEFAULT_GENERATOR_OPTIONS.excludeAmbiguousSymbols,
   );
 
-  // Generate an initial password exactly once, on mount, if none was provided.
-  const didInit = useRef(false);
   useEffect(() => {
-    if (didInit.current) return;
-    didInit.current = true;
-
-    if (!generatedPassword) {
-      const generator = new PasswordGenerator();
-      const pw = generator.generate();
-      setGeneratedPassword(pw);
-      onChange?.(pw);
+    if (!value && generatedPassword) {
+      onChange?.(generatedPassword);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [value, onChange, generatedPassword]);
 
   function generateNewPassword() {
     try {
