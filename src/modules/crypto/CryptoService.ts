@@ -2,6 +2,7 @@ import { CryptoEngine } from '@/modules/crypto/core/CryptoEngine';
 import { EncryptedPayload } from '@/modules/crypto/core/EncryptedPayload';
 import {
   EntryKey,
+  ExportKey,
   KEY_PURPOSE,
   MasterKey,
   SubKey,
@@ -65,6 +66,10 @@ class CryptoService {
 
   deriveEntryKey(masterKey: MasterKey): EntryKey {
     return this.engine.deriveSubKey(masterKey, KEY_PURPOSE.ENTRY);
+  }
+
+  deriveExportKey(masterKey: MasterKey): ExportKey {
+    return this.engine.deriveSubKey(masterKey, KEY_PURPOSE.EXPORT);
   }
 
   encrypt<T>(data: T, key: SubKey): EncryptedPayload {

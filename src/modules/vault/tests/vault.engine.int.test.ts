@@ -19,7 +19,7 @@ describe('Unlock vault tests', () => {
   let vaultEngine: VaultEngine;
 
   beforeEach(() => {
-    vaultEngine = new VaultEngine(encryptedVault, cryptoService);
+    vaultEngine = new VaultEngine(encryptedVault, cryptoService, 'a');
   });
 
   it('successfully unlocks vault', async () => {
@@ -43,7 +43,7 @@ describe('Add item tests', () => {
   let vaultEngine: VaultEngine;
 
   beforeEach(async () => {
-    vaultEngine = new VaultEngine(encryptedVault, cryptoService);
+    vaultEngine = new VaultEngine(encryptedVault, cryptoService, 'a');
     await vaultEngine.unlock(password);
   });
 
@@ -56,6 +56,8 @@ describe('Add item tests', () => {
       title: 'Test',
       username: 'user',
       password: 'pass',
+      deviceId: 'a',
+      version: 1,
     };
 
     vaultEngine.addItem(item);
@@ -74,6 +76,8 @@ describe('Add item tests', () => {
       password: 'pass',
       createdAt: Date.now(),
       updatedAt: Date.now(),
+      deviceId: 'a',
+      version: 1,
     };
 
     vaultEngine.addItem(item);
@@ -92,7 +96,7 @@ describe('Update item tests', () => {
   let vaultEngine: VaultEngine;
 
   beforeEach(async () => {
-    vaultEngine = new VaultEngine(encryptedVault, cryptoService);
+    vaultEngine = new VaultEngine(encryptedVault, cryptoService, 'a');
     await vaultEngine.unlock(password);
   });
 
@@ -162,7 +166,7 @@ describe('Delete item tests', () => {
   let vaultEngine: VaultEngine;
 
   beforeEach(async () => {
-    vaultEngine = new VaultEngine(encryptedVault, cryptoService);
+    vaultEngine = new VaultEngine(encryptedVault, cryptoService, 'a');
     await vaultEngine.unlock(password);
   });
 

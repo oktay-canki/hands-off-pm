@@ -8,6 +8,9 @@ type VaultEntry = {
   notes?: string;
   createdAt: number;
   updatedAt: number;
+
+  version: number;
+  deviceId: string;
 };
 
 export default VaultEntry;
