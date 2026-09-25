@@ -1,5 +1,6 @@
 'use client';
 
+import Checkbox from '@/components/common/Checkbox';
 import Button from '@/components/common/Button';
 import Input from '@/components/common/Input';
 import PasswordGenerator, {
@@ -16,6 +17,8 @@ type Props = {
   onUsePassword?: (password: string) => void;
 };
 
+const passwordGenerator = new PasswordGenerator();
+
 export default function PasswordGeneratorControl({
   value,
   onChange,
@@ -23,27 +26,31 @@ export default function PasswordGeneratorControl({
 }: Props) {
   const [generatedPassword, setGeneratedPassword] = useState(() => {
     if (value) return value;
-    const generator = new PasswordGenerator();
-    return generator.generate();
+    return passwordGenerator.generate();
   });
 
-  // generator options
   const [length, setLength] = useState(DEFAULT_GENERATOR_OPTIONS.length);
+
   const [includeLowercase, setIncludeLowerCase] = useState(
     DEFAULT_GENERATOR_OPTIONS.includeLowercase,
   );
+
   const [includeUppercase, setIncludeUpperCase] = useState(
     DEFAULT_GENERATOR_OPTIONS.includeUppercase,
   );
+
   const [includeNumbers, setIncludeNumbers] = useState(
     DEFAULT_GENERATOR_OPTIONS.includeNumbers,
   );
+
   const [includeSymbols, setIncludeSymbols] = useState(
     DEFAULT_GENERATOR_OPTIONS.includeSymbols,
   );
+
   const [excludeSimilarCharacters, setExcludeSimilarCharacters] = useState(
     DEFAULT_GENERATOR_OPTIONS.excludeSimilarCharacters,
   );
+
   const [excludeAmbiguousSymbols, setExcludeAmbiguousSymbols] = useState(
     DEFAULT_GENERATOR_OPTIONS.excludeAmbiguousSymbols,
   );
@@ -56,8 +63,7 @@ export default function PasswordGeneratorControl({
 
   function generateNewPassword() {
     try {
-      const generator = new PasswordGenerator();
-      const pw = generator.generate({
+      const password = passwordGenerator.generate({
         length,
         includeLowercase,
         includeUppercase,
@@ -66,121 +72,177 @@ export default function PasswordGeneratorControl({
         excludeSimilarCharacters,
         excludeAmbiguousSymbols,
       });
-      setGeneratedPassword(pw);
-      onChange?.(pw);
-    } catch (error) {
-      let msg =
-        'An error occured while generating password with given options.';
-      if (error instanceof Error && error.message) {
-        msg = error.message;
-      }
 
-      toast.error(msg);
+      setGeneratedPassword(password);
+      onChange?.(password);
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'An error occurred while generating the password with the given options.';
+
+      toast.error(message);
     }
   }
 
   return (
-    <>
-      <div className="flex gap-2 mb-2">
-        <Button
-          className="flex-1"
-          onClick={() => onUsePassword?.(generatedPassword)}
-          variant="outline"
+    <div className="flex flex-col gap-5">
+      {/* Generated password */}
+      <div className="flex flex-col gap-2">
+        <label
+          htmlFor="generated-password"
+          className="text-sm font-medium text-surface"
         >
-          Use this password
-        </Button>
-        <Button className="flex-1 gap-2" onClick={generateNewPassword}>
-          Generate <Shuffle size={16} />
-        </Button>
+          Generated password
+        </label>
+
+        <div className="relative">
+          <Input
+            id="generated-password"
+            value={generatedPassword}
+            readOnly
+            className="pr-12 font-mono"
+          />
+
+          <button
+            type="button"
+            onClick={generateNewPassword}
+            aria-label="Generate new password"
+            className={cn(
+              'absolute right-1 top-1/2 flex size-8 -translate-y-1/2',
+              'items-center justify-center rounded-md',
+              'text-surface/60 transition-colors',
+              'hover:bg-primary hover:text-surface',
+              'focus-visible:ring-2 focus-visible:ring-accent',
+            )}
+          >
+            <Shuffle className="size-4" />
+          </button>
+        </div>
       </div>
-      <div className="w-full mb-4">
-        <label htmlFor="pw-length" className="block text-center">
+
+      {/* Length */}
+      <div className="flex flex-col gap-2">
+        <label htmlFor="pw-length" className="text-sm font-medium text-surface">
           Length
         </label>
+
         <Input
           id="pw-length"
           type="number"
           min={8}
           max={32}
-          defaultValue={8}
+          value={length}
           onChange={(e) => setLength(Number(e.target.value))}
-          className="w-full text-center"
+          className="text-center font-mono"
         />
       </div>
 
-      <div className="flex items-center justify-center mb-4 gap-2 border border-surface px-2 pt-6 pb-4 rounded-md relative">
-        <label className="block absolute top-0 left-0 translate-x-4 -translate-y-1/2 bg-background px-2">
+      {/* Character options */}
+      <fieldset className="rounded-lg border border-secondary/50 p-4">
+        <legend className="px-2 text-sm font-medium text-surface">
           Characters
-        </label>
+        </legend>
+
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <button
+            type="button"
+            aria-pressed={includeUppercase}
+            onClick={() => setIncludeUpperCase((prev) => !prev)}
+            className={cn(
+              'h-10 rounded-md border px-3 text-sm font-medium',
+              'transition-colors focus-visible:ring-2 focus-visible:ring-accent',
+              includeUppercase
+                ? 'border-accent bg-accent text-background'
+                : 'border-secondary bg-primary text-surface/60 hover:border-surface hover:text-surface',
+            )}
+          >
+            A-Z
+          </button>
+
+          <button
+            type="button"
+            aria-pressed={includeLowercase}
+            onClick={() => setIncludeLowerCase((prev) => !prev)}
+            className={cn(
+              'h-10 rounded-md border px-3 text-sm font-medium',
+              'transition-colors focus-visible:ring-2 focus-visible:ring-accent',
+              includeLowercase
+                ? 'border-accent bg-accent text-background'
+                : 'border-secondary bg-primary text-surface/60 hover:border-surface hover:text-surface',
+            )}
+          >
+            a-z
+          </button>
+
+          <button
+            type="button"
+            aria-pressed={includeNumbers}
+            onClick={() => setIncludeNumbers((prev) => !prev)}
+            className={cn(
+              'h-10 rounded-md border px-3 text-sm font-medium',
+              'transition-colors focus-visible:ring-2 focus-visible:ring-accent',
+              includeNumbers
+                ? 'border-accent bg-accent text-background'
+                : 'border-secondary bg-primary text-surface/60 hover:border-surface hover:text-surface',
+            )}
+          >
+            0-9
+          </button>
+
+          <button
+            type="button"
+            aria-pressed={includeSymbols}
+            onClick={() => setIncludeSymbols((prev) => !prev)}
+            className={cn(
+              'h-10 rounded-md border px-3 text-sm font-medium',
+              'transition-colors focus-visible:ring-2 focus-visible:ring-accent',
+              includeSymbols
+                ? 'border-accent bg-accent text-background'
+                : 'border-secondary bg-primary text-surface/60 hover:border-surface hover:text-surface',
+            )}
+          >
+            !@#$%^&*
+          </button>
+        </div>
+      </fieldset>
+
+      {/* Other options */}
+      <fieldset className="flex flex-col gap-3 rounded-lg border border-secondary/50 p-4">
+        <legend className="px-2 text-sm font-medium text-surface">Other</legend>
+
+        <Checkbox
+          checked={excludeSimilarCharacters}
+          onChange={setExcludeSimilarCharacters}
+          label="Exclude similar characters"
+        />
+
+        <Checkbox
+          checked={excludeAmbiguousSymbols}
+          onChange={setExcludeAmbiguousSymbols}
+          label="Exclude ambiguous symbols"
+        />
+      </fieldset>
+
+      {/* Actions */}
+      <div className="flex gap-2">
         <Button
-          className={cn(
-            'block shrink-0 flex-1',
-            !includeUppercase && 'line-through hover:no-underline',
-            includeUppercase && 'hover:line-through',
-          )}
-          variant={includeUppercase ? 'primary' : 'ghost'}
-          onClick={() => setIncludeUpperCase((prev) => !prev)}
+          className="flex-1"
+          variant="outline"
+          onClick={() => onUsePassword?.(generatedPassword)}
         >
-          A - Z
+          Use this password
         </Button>
 
         <Button
-          className={cn(
-            'block shrink-0 flex-1',
-            !includeLowercase && 'line-through hover:no-underline',
-            includeLowercase && 'hover:line-through',
-          )}
-          variant={includeLowercase ? 'primary' : 'ghost'}
-          onClick={() => setIncludeLowerCase((prev) => !prev)}
+          className="flex-1 gap-2"
+          variant="accent"
+          onClick={generateNewPassword}
         >
-          a - z
-        </Button>
-
-        <Button
-          className={cn(
-            'block shrink-0 flex-1',
-            !includeNumbers && 'line-through hover:no-underline',
-            includeNumbers && 'hover:line-through',
-          )}
-          variant={includeNumbers ? 'primary' : 'ghost'}
-          onClick={() => setIncludeNumbers((prev) => !prev)}
-        >
-          0-9
-        </Button>
-
-        <Button
-          className={cn(
-            'block shrink-0 flex-2',
-            !includeSymbols && 'line-through hover:no-underline',
-            includeSymbols && 'hover:line-through',
-          )}
-          variant={includeSymbols ? 'primary' : 'ghost'}
-          onClick={() => setIncludeSymbols((prev) => !prev)}
-        >
-          !@#$%^&*
+          Generate
+          <Shuffle className="size-4" />
         </Button>
       </div>
-
-      <div className="flex flex-col gap-2 items-center justify-center border border-surface px-2 pt-6 pb-4 rounded-sm relative">
-        <label className="block absolute top-0 left-0 translate-x-4 -translate-y-1/2 bg-background px-2">
-          Other
-        </label>
-        <Button
-          className={cn('block shrink-0 w-full')}
-          variant={excludeSimilarCharacters ? 'primary' : 'outline'}
-          onClick={() => setExcludeSimilarCharacters((prev) => !prev)}
-        >
-          Exclude similar characters
-        </Button>
-
-        <Button
-          className={cn('block shrink-0 w-full')}
-          variant={excludeAmbiguousSymbols ? 'primary' : 'outline'}
-          onClick={() => setExcludeAmbiguousSymbols((prev) => !prev)}
-        >
-          Exclude Ambiguous Symbols
-        </Button>
-      </div>
-    </>
+    </div>
   );
 }

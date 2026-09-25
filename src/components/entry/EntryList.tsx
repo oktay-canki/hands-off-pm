@@ -1,135 +1,191 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import EntryListItem from '@/components/entry/EntryListItem';
-import useVaultSnapshot from '@/hooks/useVaultSnapshot';
-import { Plus, Search, Trash } from 'lucide-react';
-import Input from '@/components/common/Input';
-import Link from 'next/link';
 import Button from '@/components/common/Button';
-import { toast } from 'sonner';
-import { useVault } from '@/context/VaultContext';
 import ButtonLoader from '@/components/common/ButtonLoader';
-import Modal from '@/components/common/Modal';
+import DeleteEntriesModal from '@/components/entry/DeleteEntriesModal';
+import Input from '@/components/common/Input';
+import EntryListItem from '@/components/entry/EntryListItem';
+import { useVault } from '@/context/VaultContext';
+import useVaultSnapshot from '@/hooks/useVaultSnapshot';
 import { useModal } from '@/hooks/useModal';
 import cn from '@/utils/cn';
+import { Plus, Search, Trash } from 'lucide-react';
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import VaultEntry from '@/modules/vault/types/VaultEntry';
+
+type PendingDeletion = Pick<VaultEntry, 'itemId' | 'title'>;
 
 const EntryList = () => {
   const vault = useVault();
   const snapshot = useVaultSnapshot();
+
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [pendingDeletion, setPendingDeletion] = useState<PendingDeletion[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const confirmDeleteModal = useModal();
 
   const filteredEntries = useMemo(() => {
     if (!snapshot) return [];
-    const q = query.trim().toLowerCase();
-    if (!q) return snapshot.entries;
+
+    const searchQuery = query.trim().toLowerCase();
+
+    if (!searchQuery) {
+      return snapshot.entries;
+    }
 
     return snapshot.entries.filter((entry) => {
       return (
-        entry.title.toLowerCase().includes(q) ||
-        entry.username?.toLowerCase().includes(q) ||
-        entry.url?.toLowerCase().includes(q) ||
-        entry.notes?.toLowerCase().includes(q)
+        entry.title.toLowerCase().includes(searchQuery) ||
+        entry.username?.toLowerCase().includes(searchQuery) ||
+        entry.url?.toLowerCase().includes(searchQuery) ||
+        entry.notes?.toLowerCase().includes(searchQuery)
       );
     });
   }, [snapshot, query]);
 
-  function handleSelectedChange(itemId: string, val: boolean) {
+  function handleSelectedChange(itemId: string, checked: boolean) {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (val) next.add(itemId);
-      else next.delete(itemId);
+
+      if (checked) {
+        next.add(itemId);
+      } else {
+        next.delete(itemId);
+      }
+
       return next;
     });
   }
 
   function handleDelete() {
-    if (selected.size === 0) return;
+    if (!snapshot || selected.size === 0 || isDeleting) return;
+
+    const entries = snapshot.entries
+      .filter((entry) => selected.has(entry.itemId))
+      .map((entry) => ({
+        itemId: entry.itemId,
+        title: entry.title,
+      }));
+
+    if (entries.length === 0) return;
+
+    setPendingDeletion(entries);
     confirmDeleteModal.open();
   }
 
   async function deleteEntries() {
-    if (isDeleting) return;
+    if (pendingDeletion.length === 0 || isDeleting) return;
+
+    const itemIds = pendingDeletion.map((entry) => entry.itemId);
+
     setIsDeleting(true);
-    confirmDeleteModal.close();
-    let count = 0;
-    for (const itemId of selected) {
-      try {
-        await vault.deleteEntry(itemId);
-      } catch (error) {
-        count++;
-        console.log(error);
-      }
-    }
 
-    if (count === 0) toast.success(`Deleted ${selected.size} entries`);
-    else {
-      toast.error(`Failed to delete ${count} of ${selected.size} entries`);
-    }
-    setSelected(new Set());
-    setIsDeleting(false);
-  }
+    try {
+      await vault.deleteEntries(itemIds);
 
-  function getEntryTitle(itemId: string) {
-    const entry = snapshot.entries.find((e) => e.itemId === itemId);
-    return entry ? entry.title : '';
+      toast.success(
+        `Deleted ${itemIds.length} ${
+          itemIds.length === 1 ? 'entry' : 'entries'
+        }.`,
+      );
+
+      setSelected((prev) => {
+        const next = new Set(prev);
+
+        for (const itemId of itemIds) {
+          next.delete(itemId);
+        }
+
+        return next;
+      });
+
+      setPendingDeletion([]);
+      confirmDeleteModal.close();
+    } catch (error) {
+      console.error('Failed to delete entries:', error);
+
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Failed to delete entries.';
+
+      toast.error(message);
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   return (
     <>
-      <div className="w-full h-fit lg:w-10/12 mx-auto py-10">
-        <div className="w-full mt-10 flex items-center justify-center lg:justify-start flex-wrap gap-4 mb-8">
-          <div className="flex items-center gap-2">
-            <Search size={22} strokeWidth={3} />
+      <div className="mx-auto h-fit w-full py-10 lg:w-10/12">
+        <div className="mb-8 mt-10 flex w-full flex-wrap items-center justify-center gap-4 lg:justify-start px-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2 lg:max-w-md">
+            <Search
+              className="size-5 shrink-0"
+              strokeWidth={2.5}
+              aria-hidden="true"
+            />
+
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search entries..."
+              aria-label="Search entries"
             />
           </div>
-          <Link href={`/vault/entry/add`} className="flex gap-2 shrink-0">
-            <Button variant="ghost" className="flex gap-2" size="lg">
-              <Plus size={22} strokeWidth={3} className="inline-block" /> Add
-              Entry
+
+          <Link href="/vault/entry/add" className="shrink-0">
+            <Button variant="ghost" size="lg" className="gap-2">
+              <Plus className="size-5" strokeWidth={2.5} />
+              Add Entry
             </Button>
           </Link>
-          <div className="lg:ml-auto flex items-stretch">
+
+          <div className="flex shrink-0 items-center gap-3 lg:ml-auto">
+            {selected.size > 0 && (
+              <>
+                <span className="small-text text-surface/60">
+                  {selected.size} selected
+                </span>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={isDeleting}
+                  onClick={() => setSelected(new Set())}
+                >
+                  Clear
+                </Button>
+              </>
+            )}
+
             <Button
+              type="button"
               variant="destructive"
-              className={cn(
-                'flex gap-2 items-center',
-                selected.size !== 0 && 'rounded-r-none',
-              )}
+              size="sm"
+              className="gap-2"
               disabled={isDeleting || selected.size === 0}
               onClick={handleDelete}
             >
-              {!isDeleting ? (
-                <>
-                  <Trash size={18} />
-                  Delete {selected.size !== 0 && `(${selected.size})`}
-                </>
-              ) : (
+              {isDeleting ? (
                 <ButtonLoader />
+              ) : (
+                <>
+                  <Trash className="size-4" aria-hidden="true" />
+                  Delete
+                </>
               )}
             </Button>
-            {selected.size !== 0 && (
-              <Button
-                className="rounded-l-none"
-                variant="secondary"
-                onClick={() => setSelected(new Set())}
-              >
-                Clear
-              </Button>
-            )}
           </div>
         </div>
 
         {filteredEntries.length === 0 ? (
-          <div className="flex flex-1 h-20 items-center justify-center">
+          <div className="flex h-20 items-center justify-center text-surface/60">
             {!snapshot || snapshot.entries.length === 0
               ? 'No entries'
               : 'No matching entries'}
@@ -141,43 +197,22 @@ const EntryList = () => {
                 key={entry.itemId}
                 entry={entry}
                 isChecked={selected.has(entry.itemId)}
-                onCheckedChange={(val) => {
-                  handleSelectedChange(entry.itemId, val);
-                }}
+                onCheckedChange={(checked) =>
+                  handleSelectedChange(entry.itemId, checked)
+                }
               />
             ))}
           </ul>
         )}
       </div>
+
       {confirmDeleteModal.isOpen && (
-        <Modal
-          isOpen={confirmDeleteModal.isOpen}
-          onClose={confirmDeleteModal.close}
-        >
-          <h2 className="card-title">
-            Are you sure you want to delete {selected.size} items?
-          </h2>
-          <p className="body-text text-danger mb-4">
-            Deleted entries can not be recovered.
-          </p>
-          <div className="w-full max-h-40 overflow-y-auto px-8 py-2 mx-auto bg-secondary rounded-md mb-8 flex flex-col gap-4">
-            {Array.from(
-              selected.keys().map((itemId) => (
-                <div className="flex flex-col" key={itemId}>
-                  <h2 className="card-title">{getEntryTitle(itemId)}</h2>
-                </div>
-              )),
-            )}
-          </div>
-          <Button
-            variant="destructive"
-            size="lg"
-            className="block ml-auto"
-            onClick={deleteEntries}
-          >
-            Delete Entries
-          </Button>
-        </Modal>
+        <DeleteEntriesModal
+          entryTitles={pendingDeletion.map((entry) => entry.title)}
+          isDeleting={isDeleting}
+          onConfirm={deleteEntries}
+          onCancel={confirmDeleteModal.close}
+        />
       )}
     </>
   );

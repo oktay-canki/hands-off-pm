@@ -1,12 +1,14 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-background: #00272b; /* jet black */
-  --color-primary: #00363d; /* dark teal*/
-  --color-surface: #d6fff6; /* frozen water */
-  --color-secondary: #55868c; /* dark cyan */
-  --color-accent: #ffc857; /* golden pollen */
+  --color-background: #00272b;
+  --color-primary: #00363d;
+  --color-surface: #d6fff6;
+  --color-secondary: #55868c;
+  --color-border: #24545a;
+  --color-accent: #ffc857;
   --color-danger: #dc3545;
+  --color-success: #00c65f;
 }
 
 * {
@@ -16,63 +18,226 @@
 html,
 body {
   width: 100%;
-  height: 100%;
-  min-height: 100dvh;
+  min-height: 100%;
   margin: 0;
   padding: 0;
 }
 
+html {
+  min-height: 100dvh;
+  scroll-behavior: smooth;
+}
+
 body {
+  min-height: 100dvh;
   background-color: var(--color-background);
+  color: var(--color-surface);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input[type='button'],
+input[type='submit'],
+input[type='reset'] {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+textarea:disabled,
+select:disabled {
+  cursor: not-allowed;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+@utility title {
+  @apply text-3xl font-bold leading-tight tracking-tight
+    sm:text-4xl
+    md:text-5xl
+    lg:text-6xl;
+}
+
+@utility heading {
+  @apply text-2xl font-semibold leading-snug tracking-tight
+    sm:text-3xl
+    md:text-4xl;
+}
+
+@utility subtitle {
+  @apply text-lg font-medium leading-snug
+    sm:text-xl
+    md:text-2xl;
+}
+
+@utility card-title {
+  @apply text-base font-semibold leading-tight
+    sm:text-lg
+    md:text-xl;
+}
+
+@utility body-text {
+  @apply text-sm font-normal leading-relaxed
+    sm:text-base
+    md:text-lg;
+}
+
+@utility small-text {
+  @apply text-xs font-normal leading-normal
+    sm:text-sm;
+}
+
+@utility micro-text {
+  @apply text-[0.65rem] font-medium uppercase tracking-wide
+    sm:text-xs;
+}
+
+@utility eyebrow {
+  @apply text-xs font-semibold uppercase tracking-widest
+    sm:text-sm;
+}
+
+@utility link-text {
+  @apply text-sm font-medium underline-offset-2 transition-colors
+    hover:underline
+    sm:text-base;
+}
+
+@utility icon-action {
+  @apply flex size-10 items-center justify-center rounded-md
+    text-surface transition-colors
+    hover:bg-primary hover:text-surface
+    focus-visible:ring-2 focus-visible:ring-accent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Sonner */
+
+[data-sonner-toast] {
+  --normal-bg: var(--color-primary);
+  --normal-text: var(--color-surface);
+  --normal-border: color-mix(in srgb, var(--color-secondary) 50%, transparent);
+
+  box-shadow: 0 10px 25px rgb(0 0 0 / 0.25);
+}
+
+/* Content */
+
+[data-sonner-toast] [data-title] {
+  font-weight: 600;
   color: var(--color-surface);
 }
 
-/* Text utilities */
-@utility title {
-  @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight;
-}
-@utility heading {
-  @apply text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight leading-snug;
-}
-@utility subtitle {
-  @apply text-lg sm:text-xl md:text-2xl font-medium leading-snug;
-}
-@utility card-title {
-  @apply text-base sm:text-lg md:text-xl font-semibold leading-tight;
-}
-@utility body-text {
-  @apply text-sm sm:text-base md:text-lg font-normal leading-relaxed;
-}
-@utility small-text {
-  @apply text-xs sm:text-sm font-normal leading-normal;
-}
-@utility micro-text {
-  @apply text-[0.65rem] sm:text-xs font-medium uppercase tracking-wide;
-}
-@utility eyebrow {
-  @apply text-xs sm:text-sm font-semibold uppercase tracking-widest;
-}
-@utility link-text {
-  @apply text-sm sm:text-base font-medium underline-offset-2 hover:underline transition-colors;
+[data-sonner-toast] [data-description] {
+  color: color-mix(in srgb, var(--color-surface) 60%, transparent);
 }
 
-@layer {
-  /* Input fields */
-  input[type='button'],
-  button {
-    @apply hover:cursor-pointer outline-none;
-  }
+/* Types */
 
-  /* Chrome, Safari, Edge, Opera */
-  input[type='number']::-webkit-outer-spin-button,
-  input[type='number']::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
+[data-sonner-toast][data-type='success'] {
+  --success-bg: var(--color-primary);
+  --success-text: var(--color-surface);
+  --success-border: var(--color-success);
+}
 
-  /* Firefox */
-  input[type='number'] {
-    -moz-appearance: textfield;
-    appearance: textfield;
-  }
+[data-sonner-toast][data-type='error'] {
+  --error-bg: var(--color-primary);
+  --error-text: var(--color-surface);
+  --error-border: var(--color-danger);
+}
+
+[data-sonner-toast][data-type='warning'] {
+  --warning-bg: var(--color-primary);
+  --warning-text: var(--color-surface);
+  --warning-border: var(--color-accent);
+}
+
+[data-sonner-toast][data-type='info'] {
+  --info-bg: var(--color-primary);
+  --info-text: var(--color-surface);
+  --info-border: var(--color-secondary);
+}
+
+/* Icons */
+
+[data-sonner-toast][data-type='success'] [data-icon] {
+  color: var(--color-success);
+}
+
+[data-sonner-toast][data-type='error'] [data-icon] {
+  color: var(--color-danger);
+}
+
+[data-sonner-toast][data-type='warning'] [data-icon] {
+  color: var(--color-accent);
+}
+
+[data-sonner-toast][data-type='info'] [data-icon] {
+  color: var(--color-secondary);
+}
+
+/* Actions */
+
+[data-sonner-toast] [data-button] {
+  background-color: var(--color-accent);
+  color: var(--color-background);
+}
+
+[data-sonner-toast] [data-button]:hover {
+  background-color: color-mix(in srgb, var(--color-accent) 90%, transparent);
+}
+
+[data-sonner-toast] [data-cancel] {
+  background-color: transparent;
+  color: color-mix(in srgb, var(--color-surface) 70%, transparent);
+}
+
+[data-sonner-toast] [data-cancel]:hover {
+  background-color: var(--color-primary);
+}
+
+/* Close button */
+
+[data-sonner-toast] [data-close-button] {
+  border: 1px solid color-mix(in srgb, var(--color-secondary) 50%, transparent);
+
+  background-color: var(--color-primary);
+  color: color-mix(in srgb, var(--color-surface) 60%, transparent);
+}
+
+[data-sonner-toast] [data-close-button]:hover {
+  color: var(--color-surface);
 }

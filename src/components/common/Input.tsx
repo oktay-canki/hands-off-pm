@@ -1,5 +1,7 @@
+'use client';
+
 import cn from '@/utils/cn';
-import { InputHTMLAttributes } from 'react';
+import { forwardRef, InputHTMLAttributes } from 'react';
 
 type Variant = 'primary' | 'secondary' | 'outline' | 'ghost';
 type Size = 'sm' | 'md' | 'lg';
@@ -10,31 +12,28 @@ export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> & {
 };
 
 const baseStyles =
-  'rounded-md border-2 outline-none transition-colors disabled:opacity-50 disabled:pointer-events-none placeholder:text-surface/50';
+  'w-full rounded-md border bg-transparent text-surface transition-colors outline-none placeholder:text-surface/40 focus-visible:ring-2 focus-visible:ring-surface disabled:cursor-not-allowed disabled:opacity-50';
 
 const variantStyles: Record<Variant, string> = {
-  primary: 'bg-secondary border-secondary focus:border-surface',
-  secondary: 'bg-primary border-primary focus:border-background',
-  outline: 'bg-transparent border-secondary focus:border-surface',
-  ghost:
-    'bg-transparent border-transparent hover:bg-mutedbackground focus:border-surface',
+  primary: 'border-secondary bg-secondary/30 hover:border-secondary/80',
+  secondary: 'border-primary bg-primary hover:border-secondary ',
+  outline: 'border-secondary bg-transparent hover:border-secondary/80 ',
+  ghost: 'border-transparent bg-transparent hover:bg-primary/60 ',
 };
 
 const sizeStyles: Record<Size, string> = {
-  sm: 'py-1 px-3 text-sm',
-  md: 'py-2 px-4 text-base',
-  lg: 'py-3 px-6 text-lg',
+  sm: 'h-8 px-3 text-sm',
+  md: 'h-10 px-3 text-sm',
+  lg: 'h-12 px-4 text-base',
 };
 
-export default function Input({
-  className,
-  type = 'text',
-  variant = 'primary',
-  size = 'md',
-  ...rest
-}: InputProps) {
+const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
+  { className, type = 'text', variant = 'primary', size = 'md', ...rest },
+  ref,
+) {
   return (
     <input
+      ref={ref}
       type={type}
       className={cn(
         baseStyles,
@@ -45,4 +44,6 @@ export default function Input({
       {...rest}
     />
   );
-}
+});
+
+export default Input;

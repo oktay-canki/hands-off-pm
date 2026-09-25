@@ -4,20 +4,21 @@ import Link from 'next/link';
 
 export default function Register() {
   return (
-    <div className="w-full h-full flex items-center justify-center">
-      <div className="w-10/12 max-w-md mx-auto">
+    <main className="flex min-h-dvh w-full items-center justify-center">
+      <div className="w-full max-w-md px-6">
         <RegisterForm />
-        <div className="w-8/12 mx-auto flex items-center justify-center gap-4 my-12 px-2">
-          <div className="flex-1 bg-surface h-0.5"></div>
-          <div className="w-1 h-1 rounded-full bg-surface"></div>
-          <div className="flex-1 bg-surface h-0.5"></div>
-        </div>
-        <Link href="/auth/login">
-          <Button className="w-full" variant="accent-outline" size="lg">
+
+        <Link href="/auth/login" className="block w-full mt-8">
+          <Button
+            type="button"
+            variant="accent-outline"
+            size="lg"
+            className="w-full"
+          >
             Unlock Vault
           </Button>
         </Link>
       </div>
-    </div>
+    </main>
   );
 }

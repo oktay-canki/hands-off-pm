@@ -1,43 +1,61 @@
+'use client';
+
 import { useState } from 'react';
 import { Globe } from 'lucide-react';
 
+type Props = {
+  url?: string;
+  size?: number;
+};
+
 function normalizeUrl(input: string): string {
   const trimmed = input.trim();
+
   if (/^https?:\/\//i.test(trimmed)) {
     return trimmed;
   }
+
   return `https://${trimmed}`;
 }
 
-export default function SiteFavicon({
-  url,
-  size = 20,
-}: {
-  url: string | undefined;
-  size?: number;
-}) {
+export default function SiteFavicon({ url, size = 20 }: Props) {
   const [hasError, setHasError] = useState(false);
 
-  if (hasError || !url) {
-    return <Globe size={size} className="text-secondary size-8" />;
+  if (!url || hasError) {
+    return (
+      <Globe
+        size={size}
+        className="shrink-0 text-secondary"
+        aria-hidden="true"
+      />
+    );
   }
 
   let domain: string;
+
   try {
     domain = new URL(normalizeUrl(url)).hostname;
   } catch {
-    return <Globe size={size} className="text-secondary size-8" />;
+    return (
+      <Globe
+        size={size}
+        className="shrink-0 text-secondary"
+        aria-hidden="true"
+      />
+    );
   }
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      alt="entry site favicon"
-      src={`https://www.google.com/s2/favicons?domain=${domain}&sz=${size * 2}`}
+      src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(
+        domain,
+      )}&sz=${size * 2}`}
+      alt=""
       width={size}
       height={size}
       onError={() => setHasError(true)}
-      className="rounded-full shrink-0 object-cover object-center size-8"
+      className="shrink-0 rounded-full object-cover"
     />
   );
 }

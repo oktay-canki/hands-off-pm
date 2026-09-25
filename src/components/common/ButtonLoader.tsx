@@ -5,5 +5,13 @@ type Props = {
 };
 
 export default function ButtonLoader({ size = 6 }: Props) {
-  return <SyncLoader size={size} color="var(--color-surface)" />;
+  return (
+    <span
+      role="status"
+      aria-label="Loading"
+      className="inline-flex items-center justify-center"
+    >
+      <SyncLoader size={size} color="var(--color-surface)" aria-hidden="true" />
+    </span>
+  );
 }

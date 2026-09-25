@@ -4,6 +4,7 @@ import type { VaultSnapshot } from '@/modules/vault/VaultService';
 import { useCallback, useSyncExternalStore } from 'react';
 
 export const SERVER_SNAPSHOT: VaultSnapshot = {
+  userId: null,
   status: {
     isLocked: true,
     isLoading: false,

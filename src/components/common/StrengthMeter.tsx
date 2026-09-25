@@ -5,13 +5,29 @@ import { Info } from 'lucide-react';
 
 type StrengthLabel = PasswordStrength['label'];
 
-const strengthStyles: Record<StrengthLabel, string> = {
-  'Very Weak': 'w-2/12',
-  Weak: 'w-4/12',
-  Reasonable: 'w-8/12',
-  Strong: 'w-10/12',
-  'Very Strong': 'w-12/12',
-};
+const strengthStyles: Record<StrengthLabel, { width: string; color: string }> =
+  {
+    'Very Weak': {
+      width: 'w-2/12',
+      color: 'bg-danger',
+    },
+    Weak: {
+      width: 'w-4/12',
+      color: 'bg-danger',
+    },
+    Reasonable: {
+      width: 'w-8/12',
+      color: 'bg-accent',
+    },
+    Strong: {
+      width: 'w-10/12',
+      color: 'bg-accent',
+    },
+    'Very Strong': {
+      width: 'w-full',
+      color: 'bg-surface',
+    },
+  };
 
 type Props = {
   strength?: StrengthLabel;
@@ -19,32 +35,43 @@ type Props = {
 
 export default function StrengthMeter({ strength }: Props) {
   if (!strength) return null;
+
+  const styles = strengthStyles[strength];
+
   return (
-    <div className="flex items-center justify-center w-11/12 gap-4 px-2">
-      <div className="bg-primary flex-1 h-2 rounded-full">
+    <div className="flex w-full items-center gap-3 px-1">
+      <div
+        className="h-2 flex-1 overflow-hidden rounded-full bg-primary"
+        role="progressbar"
+        aria-label="Password strength"
+        aria-valuetext={strength}
+      >
         <div
           className={cn(
-            'bg-surface rounded-full h-full',
-            strengthStyles[strength],
+            'h-full rounded-full transition-all duration-300',
+            styles.width,
+            styles.color,
           )}
-        ></div>
+        />
       </div>
 
-      <div className="flex gap-2 items-center">
-        <span className="block label shrink-0">{strength}</span>
+      <div className="flex shrink-0 items-center gap-1.5">
+        <span className="text-sm font-medium text-surface">{strength}</span>
 
         <Tooltip
-          label={<Info size={20} />}
+          label={
+            <Info
+              className="size-4 text-surface/50 transition-colors hover:text-surface"
+              aria-hidden="true"
+            />
+          }
           content={
-            <>
-              This estimate is based on character variety and length only —{' '}
-              <br />
-              it doesn&apos;t check for common passwords, keyboard patterns, or{' '}
-              <br />
-              predictable sequences. A password can look &quot;strong&quot; here
-              but <br />
-              still be easy to guess. For better passwords use the generator.
-            </>
+            <p className="max-w-xs text-sm leading-relaxed">
+              This estimate is based on character variety and length only. It
+              does not check for common passwords, keyboard patterns, or
+              predictable sequences. A password can look strong here and still
+              be easy to guess. For better passwords, use the generator.
+            </p>
           }
         />
       </div>
