@@ -1,83 +1,124 @@
+import Link from 'next/link';
+
 export default function StoragePage() {
   return (
     <>
-      <h1 className="mb-12">Storage</h1>
+      <h1>Storage</h1>
 
-      <div className="mb-14">
-        <h2 className="mb-4">Storage Persistence & Data Loss</h2>
-        <p className="mb-2">
-          The vault is stored locally in IndexedDB. On load, the app requests
-          persistent storage via{' '}
-          <code className="mx-1">navigator.storage.persist()</code>. Once
-          granted, this exempts the vault&apos;s storage from automatic eviction
-          under disk-pressure — the browser&apos;s mechanism for silently
-          clearing &quot;best-effort&quot; storage when the device is low on
-          space. This removes the main risk of data disappearing without any
-          user action being involved.
-        </p>
-        <p>
-          This does not mean the data is indestructible. Persistent storage
-          protects against automatic, disk-pressure-driven eviction — it does
-          not, and cannot, protect against deliberate clearing of site data. No
-          browser storage API (IndexedDB, OPFS, or otherwise) is exempt from
-          this, because it&apos;s an intentional browser capability, not a bug
-          or an edge case.
-        </p>
-      </div>
+      <p>
+        The vault is persisted locally using <strong>IndexedDB</strong>.
+        Persistent storage is requested when the application starts to reduce
+        the risk of the browser automatically evicting stored data under storage
+        pressure.
+      </p>
 
-      <div className="mb-18">
-        <h3 className="mb-2">Data will be permanently lost if:</h3>
-        <ul className="list-disc">
-          <li>
-            You manually clear browsing data / site data for this app (via
-            browser settings or dev tools)
-          </li>
-          <li>
-            You use the app in a private/incognito window — data is wiped when
-            that window&apos;s session ends
-          </li>
-          <li>
-            On Safari specifically, the site isn&apos;t visited for an extended
-            period (Safari&apos;s Intelligent Tracking Prevention can clear
-            storage for inactive origins, independent of persistent storage
-            requests)
-          </li>
-          <li>
-            You switch browsers, devices, or OS user profiles — storage is
-            scoped per browser, per profile, per origin, so none of these share
-            the same vault
-          </li>
-          <li>You uninstall or reset the browser or device</li>
-        </ul>
-      </div>
+      <h2>Storage Persistence &amp; Data Loss</h2>
 
-      <div>
-        <h3 className="mb-2">
-          Why this isn&apos;t &quot;fixed&quot; at the storage layer
-        </h3>
-        <p className="mb-4">
-          There is no way to build around user-initiated or
-          browser-policy-driven data clearing from inside the browser&apos;s
-          storage APIs — persistent storage solves a different problem
-          (accidental eviction), not this one. The only real mitigation is
-          getting a copy of your vault outside the browser&apos;s storage
-          entirely: a file you export and keep somewhere you control (a backup
-          drive, a password-protected archive, cloud storage of your choosing).
-        </p>
-        <p className="mb-4">
-          Export/import is planned but not yet implemented. Once available, it
-          will be manual and opt-in — the app will not automatically write files
-          to your disk without your action, since silent, unprompted file writes
-          trade one class of surprise (lost data) for another (unexpected files,
-          unclear versioning, silent failures).
-        </p>
-        <p>
-          <strong>Bottom line</strong>: persistent storage reduces the chance of
-          losing your vault to something outside your control. It does not
-          replace the need to back up your data yourself, especially before
-          doing anything that clears browser storage.
-        </p>
-      </div>
+      <p>
+        The application requests persistent storage through{' '}
+        <code>navigator.storage.persist()</code>. When the browser grants
+        persistent storage, the application&apos;s data is protected from the
+        browser&apos;s normal best-effort storage eviction mechanisms.
+      </p>
+
+      <p>
+        Persistent storage does not make the vault indestructible. It protects
+        against automatic eviction, but it cannot prevent deliberate clearing of
+        browser or site data.
+      </p>
+
+      <h3>Data can be permanently lost if:</h3>
+
+      <ul>
+        <li>
+          You manually clear browsing data or site data for the application.
+        </li>
+        <li>
+          You use the application in a private or incognito browsing session and
+          the browser discards that session&apos;s storage.
+        </li>
+        <li>
+          Browser-specific storage policies remove data for an inactive site.
+          Storage behavior can vary between browsers and versions.
+        </li>
+        <li>
+          You switch browsers, browser profiles, devices, or operating system
+          user profiles. Browser storage is scoped to its respective storage
+          environment and is not automatically shared between them.
+        </li>
+        <li>
+          You uninstall, reset, or otherwise remove the browser&apos;s stored
+          application data.
+        </li>
+      </ul>
+
+      <h2>Why Persistent Storage Is Not a Backup</h2>
+
+      <p>
+        Persistent storage reduces the likelihood of losing the vault through
+        automatic browser eviction, but it is still local browser storage. It
+        does not provide an independent copy of the vault.
+      </p>
+
+      <p>
+        If the browser storage is deliberately cleared, corrupted, or becomes
+        inaccessible, persistent storage cannot restore the lost data. This is
+        why local persistence and backups solve different problems.
+      </p>
+
+      <h2>Encrypted Backups</h2>
+
+      <p>
+        The application provides manual encrypted vault export and import. An
+        exported backup provides a copy of the vault outside the browser&apos;s
+        local storage environment.
+      </p>
+
+      <p>
+        Exported backups are protected with a separate export password and can
+        later be imported and merged with the current vault. Import does not
+        simply replace the existing vault; items are compared and conflicts
+        between different devices can be presented for manual resolution.
+      </p>
+
+      <p>
+        See <Link href="/docs/export-import">Export &amp; Import</Link> for the
+        complete backup and merge workflow.
+      </p>
+
+      <h2>Storage Boundaries</h2>
+
+      <p>
+        IndexedDB stores the vault in encrypted form. The storage layer does not
+        need access to the master password, derived cryptographic keys, or
+        plaintext vault contents.
+      </p>
+
+      <p>
+        The browser therefore acts as the persistence layer rather than as a
+        trusted location for plaintext secrets. Cryptographic operations and
+        unlocked vault state are handled separately from persistent storage.
+      </p>
+
+      <h2>Practical Backup Guidance</h2>
+
+      <p>
+        Persistent storage should be treated as the application&apos;s normal
+        local persistence mechanism, not as a substitute for backups.
+      </p>
+
+      <p>
+        Create an encrypted export when you need an independent copy of your
+        vault, particularly before clearing browser data, moving to another
+        device or browser environment, or performing other operations that could
+        remove local storage.
+      </p>
+
+      <p>
+        Keep exported backups somewhere appropriate and protect their export
+        passwords. Anyone who obtains a backup file can attempt to decrypt it if
+        they also obtain its password.
+      </p>
     </>
   );
 }
