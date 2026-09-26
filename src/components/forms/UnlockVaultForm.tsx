@@ -35,7 +35,18 @@ export default function UnlockVaultForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex w-full flex-col items-center">
-      <h2 className="subtitle mb-8 max-w-full truncate">{username}</h2>
+      <div className="mb-6 flex max-w-full items-center gap-3">
+        <div
+          className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-surface"
+          aria-hidden="true"
+        >
+          {username.charAt(0).toUpperCase()}
+        </div>
+
+        <span className="truncate text-base font-medium text-surface">
+          {username}
+        </span>
+      </div>
 
       <PasswordInput
         ref={passwordInputRef}
