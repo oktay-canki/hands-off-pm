@@ -34,7 +34,6 @@ export default function LoadUserForm({ onSubmit, isLoading }: Props) {
         value={username}
         onChange={(e) => setUsername(e.target.value)}
         autoComplete="username"
-        autoFocus
         disabled={isLoading}
         size="lg"
         variant="outline"

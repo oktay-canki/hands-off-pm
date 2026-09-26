@@ -8,7 +8,6 @@ import EntryListItem from '@/components/entry/EntryListItem';
 import { useVault } from '@/context/VaultContext';
 import useVaultSnapshot from '@/hooks/useVaultSnapshot';
 import { useModal } from '@/hooks/useModal';
-import cn from '@/utils/cn';
 import { Plus, Search, Trash } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';

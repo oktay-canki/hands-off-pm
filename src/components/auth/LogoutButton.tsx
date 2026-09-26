@@ -7,11 +7,7 @@ import { LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-type Props = {
-  className?: string;
-};
-
-export default function LogoutButton({ className }: Props) {
+export default function LogoutButton() {
   const [isLoading, setIsLoading] = useState(false);
   const vault = useVault();
 
