@@ -1,5 +1,7 @@
 'use client';
+
 import Button from '@/components/common/Button';
+import ButtonLoader from '@/components/common/ButtonLoader';
 import Input from '@/components/common/Input';
 import PasswordInputWithGenerator from '@/components/common/PasswordInputWithGenerator';
 import Textarea from '@/components/common/Textarea';
@@ -15,103 +17,142 @@ type Props = {
 
 export default function EditEntryForm({ defaultValues }: Props) {
   const [isLoading, setIsLoading] = useState(false);
+
   const [title, setTitle] = useState(defaultValues.title);
-  const [username, setUsername] = useState<string | undefined>(
-    defaultValues.username,
-  );
+  const [username, setUsername] = useState(defaultValues.username ?? '');
   const [password, setPassword] = useState(defaultValues.password);
-  const [url, setUrl] = useState<string | undefined>(defaultValues.url);
-  const [notes, setNotes] = useState<string | undefined>(defaultValues.notes);
+  const [url, setUrl] = useState(defaultValues.url ?? '');
+  const [notes, setNotes] = useState(defaultValues.notes ?? '');
+
   const vault = useVault();
   const router = useRouter();
 
-  const handleSubmit = async (e: React.SubmitEvent) => {
+  async function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
+
+    if (isLoading) return;
+
+    const trimmedTitle = title.trim();
+    const trimmedUsername = username.trim();
+    const trimmedUrl = url.trim();
+    const trimmedNotes = notes.trim();
+
+    if (!trimmedTitle || !password) {
+      toast.error('Title and password are required.');
+      return;
+    }
+
     setIsLoading(true);
+
     try {
-      const updatedEntry = {
-        ...defaultValues,
-        title,
-        username,
+      await vault.updateEntry(defaultValues.itemId, {
+        title: trimmedTitle,
+        username: trimmedUsername || undefined,
         password,
-        url,
-        notes,
-      };
-      await vault.updateEntry(defaultValues.itemId, updatedEntry);
+        url: trimmedUrl || undefined,
+        notes: trimmedNotes || undefined,
+      });
+
+      toast.success('Updated entry');
       router.back();
     } catch (error) {
-      let msg = 'Failed to update entry';
-      if (error instanceof Error && error.message) msg = error.message;
+      console.error('Failed to update entry:', error);
 
-      toast.error(msg);
-      console.log(error);
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Failed to update entry.';
+
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="mb-4">
-        <label className="block px-2 mb-1">Title</label>
+    <form onSubmit={handleSubmit} className="flex w-full flex-col gap-5">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="entry-title" className="text-sm font-medium">
+          Title
+        </label>
+
         <Input
-          placeholder="Title"
-          onChange={(e) => setTitle(e.target.value)}
+          id="entry-title"
           value={title}
-          className="w-full"
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="e.g. Google"
+          disabled={isLoading}
           required
+          autoFocus
         />
       </div>
 
-      <div className="mb-4">
-        <label className="block px-2 mb-1">Username</label>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="entry-username" className="text-sm font-medium">
+          Username
+        </label>
+
         <Input
-          placeholder="Username"
-          onChange={(e) => {
-            const val = e.target.value;
-            setUsername(val != '' ? val : undefined);
-          }}
-          value={username ?? ''}
-          className="w-full"
+          id="entry-username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Username or email"
+          autoComplete="username"
+          disabled={isLoading}
         />
       </div>
 
-      <div className="mb-4">
-        <label className="block px-2 mb-1">Password</label>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="entry-password" className="text-sm font-medium">
+          Password
+        </label>
+
         <PasswordInputWithGenerator
+          id="entry-password"
           value={password}
           onChange={setPassword}
           required
+          disabled={isLoading}
         />
       </div>
 
-      <div className="mb-4">
-        <label className="block px-2 mb-1">URL</label>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="entry-url" className="text-sm font-medium">
+          URL
+        </label>
+
         <Input
-          placeholder="URL e.g. https://example.com"
-          onChange={(e) => {
-            const val = e.target.value;
-            setUrl(val != '' ? val : undefined);
-          }}
-          value={url ?? ''}
-          className="w-full"
+          id="entry-url"
+          type="url"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="https://example.com"
+          autoComplete="url"
+          disabled={isLoading}
         />
       </div>
 
-      <div className="mb-4">
-        <label className="block px-2 mb-1">Notes</label>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="entry-notes" className="text-sm font-medium">
+          Notes
+        </label>
+
         <Textarea
-          placeholder="Notes"
-          onChange={(e) => {
-            const val = e.target.value;
-            setNotes(val != '' ? val : undefined);
-          }}
-          defaultValue={notes ?? ''}
-        ></Textarea>
+          id="entry-notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Additional notes..."
+          disabled={isLoading}
+        />
       </div>
 
-      <Button type="submit" disabled={isLoading} className="w-full" size="lg">
-        Save
+      <Button
+        type="submit"
+        size="lg"
+        disabled={isLoading}
+        className="mt-2 w-full"
+      >
+        {isLoading ? <ButtonLoader /> : 'Save'}
       </Button>
     </form>
   );

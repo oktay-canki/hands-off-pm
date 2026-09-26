@@ -35,4 +35,3 @@ export type MasterKey = KeyBrand<typeof KEY_PURPOSE.MASTER>;
 export type EntryKey = KeyBrand<typeof KEY_PURPOSE.ENTRY>;
 export type VaultKey = KeyBrand<typeof KEY_PURPOSE.VAULT>;
 export type ExportKey = KeyBrand<typeof KEY_PURPOSE.EXPORT>;
-export type SyncKey = KeyBrand<typeof KEY_PURPOSE.SYNC>;

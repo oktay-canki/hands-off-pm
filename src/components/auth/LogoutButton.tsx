@@ -1,41 +1,45 @@
 'use client';
+
+import Button from '@/components/common/Button';
 import ButtonLoader from '@/components/common/ButtonLoader';
 import { useVault } from '@/context/VaultContext';
-import cn from '@/utils/cn';
 import { LogOut } from 'lucide-react';
-import { ButtonHTMLAttributes, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
-type Props = ButtonHTMLAttributes<HTMLButtonElement>;
-
-export default function LogoutButton({ className }: Props) {
+export default function LogoutButton() {
   const [isLoading, setIsLoading] = useState(false);
   const vault = useVault();
 
-  const handleLogout = async () => {
+  async function handleLogout() {
+    if (isLoading) return;
+
     setIsLoading(true);
+
     try {
-      await logout();
+      await vault.lock();
     } catch {
-      toast.error('Failed to safely logout!');
+      toast.error('Failed to safely log out.');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const logout = async () => {
-    await vault.lock();
-  };
+  }
 
   return (
-    <button
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
       onClick={handleLogout}
-      className={cn(
-        'bg-red-800 text-white text-lg px-4 py-2 rounded-l-md min-w-16 flex items-center justify-center w-fit',
-        className,
-      )}
+      disabled={isLoading}
+      aria-label="Log out"
+      className="text-surface hover:bg-primary hover:text-danger"
     >
-      {!isLoading ? <LogOut size={24} /> : <ButtonLoader />}
-    </button>
+      {isLoading ? (
+        <ButtonLoader />
+      ) : (
+        <LogOut className="size-5" aria-hidden="true" />
+      )}
+    </Button>
   );
 }

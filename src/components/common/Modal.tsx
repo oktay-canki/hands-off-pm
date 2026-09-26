@@ -1,5 +1,8 @@
-import { useEffect, useRef } from 'react';
+'use client';
+
+import { useEffect } from 'react';
 import { X } from 'lucide-react';
+import cn from '@/utils/cn';
 
 type Props = {
   isOpen: boolean;
@@ -7,6 +10,8 @@ type Props = {
   children: React.ReactNode;
   showCloseButton?: boolean;
   closeOnOverlayClick?: boolean;
+  closeOnEscape?: boolean;
+  className?: string;
 };
 
 export default function Modal({
@@ -15,71 +20,74 @@ export default function Modal({
   children,
   showCloseButton = true,
   closeOnOverlayClick = true,
+  closeOnEscape = true,
+  className,
 }: Props) {
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  // Close on Escape
   useEffect(() => {
     if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose?.();
+
+    const originalOverflow = document.body.style.overflow;
+
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
     };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !closeOnEscape) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, closeOnEscape, onClose]);
 
   if (!isOpen) return null;
 
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Only close if the click was on the overlay itself, not something bubbling
-    // up from inside the card.
-    if (
-      closeOnOverlayClick &&
-      cardRef.current &&
-      !cardRef.current.contains(e.target as Node)
-    ) {
-      onClose?.();
-    }
-  };
-
   return (
     <div
-      onMouseDown={handleOverlayClick}
-      className="bg-black/40 fixed inset-0 flex items-center justify-center z-1000 p-4"
-      role="presentation"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      onClick={(e) => {
+        if (closeOnOverlayClick && e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
     >
       <div
-        ref={cardRef}
         role="dialog"
         aria-modal="true"
-        className="relative bg-background rounded-md p-6 max-w-xl w-10/12 mx-auto max-h-90dvh overflow-y-auto"
+        className={cn(
+          'relative max-h-[90dvh] w-full max-w-xl overflow-y-auto',
+          'rounded-lg border border-secondary/50 bg-background',
+          'p-6 shadow-2xl',
+          className,
+        )}
       >
         {showCloseButton && (
           <button
+            type="button"
             onClick={onClose}
-            aria-label="Close"
-            style={{
-              position: 'absolute',
-              top: 12,
-              right: 12,
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 6,
-              borderRadius: 6,
-              display: 'flex',
-              color: '#666',
-            }}
-            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) =>
-              (e.currentTarget.style.background = '#f0f0f0')
-            }
-            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) =>
-              (e.currentTarget.style.background = 'none')
-            }
+            aria-label="Close dialog"
+            className={cn(
+              'absolute right-3 top-3 flex size-9 items-center justify-center',
+              'rounded-md text-surface/60 transition-colors',
+              'hover:bg-primary hover:text-surface',
+              'focus-visible:ring-2 focus-visible:ring-accent',
+            )}
           >
-            <X size={18} />
+            <X className="size-5" aria-hidden="true" />
           </button>
         )}
+
         {children}
       </div>
     </div>

@@ -1,70 +1,75 @@
-Personal Use License
+Personal Use and Educational License
 
 Copyright (c) 2026 Oktay Canki
 
 1. Grant of License
 
-Subject to the restrictions below, the copyright holder grants you a
-limited, non-exclusive, non-transferable license to:
+Subject to the restrictions in this license, I grant you a limited, non-exclusive, worldwide license to:
 
 (a) view and study the source code of this software;
-(b) clone, modify, and run the software solely for your own
-personal, non-commercial use;
-(c) self-host the software, including modified versions, for your
-own private use.
+
+(b) use and run the software for personal, educational, research, and other non-commercial purposes;
+
+(c) modify the software and create derivative works for non-commercial purposes;
+
+(d) self-host the software and modified versions for non-commercial purposes; and
+
+(e) copy and redistribute the software and derivative works for non-commercial purposes, provided that the requirements of this license are preserved.
 
 2. Definitions
 
-"Commercial purposes" means any use primarily intended for or directed
-toward commercial advantage or monetary compensation, including selling,
-licensing, or offering the software as a service to third parties.
+"Commercial purposes" means any use primarily intended for commercial advantage or monetary compensation, including selling, licensing, monetizing, or providing the software or a derivative work as a commercial service.
 
-"Redistribute" means to make the software, or any copy or derivative of
-it, available to any third party in any form, including but not limited
-to source code, compiled binaries, containers, or hosted instances.
+"Derivative work" means a modified version of the software or a work that incorporates a substantial portion of the software's source code.
 
-3. Restrictions
+"Redistribute" means to make the software or a derivative work available to another person or organization, including through source code repositories, downloadable packages, containers, or hosted instances.
 
-You may NOT:
+3. Conditions
 
-(a) use this software, in whole or in part, for commercial purposes;
-(b) sell, sublicense, rent, lease, or otherwise redistribute this
-software or any derivative of it;
-(c) offer this software, or any derivative of it, as a hosted service,
-whether free or paid, to any third party;
-(d) publish, distribute, or otherwise make available any fork,
-derivative work, or modified version of this software to any third party.
+When redistributing the software or a derivative work, you must:
 
-Use of this software within a public code-hosting platform (such as
-repository forks) is permitted solely for viewing and personal use, and
-remains subject to all restrictions of this license.
+(a) retain this license and all applicable copyright notices;
 
-4. Contributions
+(b) clearly indicate any significant modifications you have made to the software; and
 
-This project is not currently open to external contributions. This policy
-does not grant any additional rights beyond those defined in this license.
+(c) not represent the modified work as the original HandsoffPM project.
 
-5. Intellectual Property
+Redistribution of the software or derivative works must remain non-commercial.
 
-This license does not grant permission to use the author's name, project
-name, branding, or trademarks.
+4. Restrictions
 
-6. Termination
+You may not:
 
-This license and the rights granted under it terminate automatically if
-you breach any of its restrictions. Upon termination, you must cease all
-use of the software and destroy all copies in your possession.
+(a) use the software or a derivative work for commercial purposes;
 
-7. Disclaimer of Warranty
+(b) sell, sublicense, rent, lease, or otherwise commercially exploit the software or a derivative work;
 
-THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+(c) offer the software or a derivative work as a commercial hosted service; or
 
-8. Limitation of Liability
+(d) remove or alter copyright notices or this license from redistributed copies.
 
-IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
-FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-DEALINGS IN THE SOFTWARE, INCLUDING BUT NOT LIMITED TO DATA LOSS,
-SECURITY BREACHES, OR OTHER DAMAGES.
+5. Contributions
+
+This project is not currently accepting external contributions.
+
+Submitting patches, code, documentation, or other material to the project does not grant any additional rights beyond those defined by this license.
+
+6. Intellectual Property
+
+This license does not grant permission to use my name, the HandsoffPM project name, branding, logos, or trademarks in a way that suggests endorsement, sponsorship, or official affiliation.
+
+All rights not expressly granted by this license are reserved.
+
+7. Termination
+
+The rights granted under this license terminate automatically if you violate its restrictions or conditions.
+
+Upon termination, you must cease distributing the software or affected derivative works and cease exercising the rights granted under this license.
+
+8. Disclaimer of Warranty
+
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+9. Limitation of Liability
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, I WILL NOT BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM OR RELATED TO THE SOFTWARE OR ITS USE, INCLUDING BUT NOT LIMITED TO DATA LOSS, SECURITY BREACHES, OR OTHER DAMAGES.

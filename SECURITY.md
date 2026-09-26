@@ -1,76 +1,127 @@
 # Security Policy
 
-## ⚠️ Security Status
+## Security Status
 
-This project is a personal project and **has not been professionally audited**.
+HandsoffPM is an actively developed personal project and has **not undergone a professional security audit or formal security review**.
 
-While care has been taken to design and implement the application securely, **no guarantees are made regarding its security**. Use at your own risk.
+The project is designed with security as an important consideration, but this does not guarantee that the implementation is secure or free from vulnerabilities.
 
----
+HandsoffPM should not be used to store high-value, production, or otherwise critical credentials.
 
-## 🔐 Security Model
+## Security Model
 
-This application is designed as a **browser-based self-hosted password manager**:
+HandsoffPM is designed as a browser-based, self-hosted, local-first password manager.
 
-- All encryption and decryption occur **in the browser**
-- No sensitive data is transmitted to or stored on any server
-- The server only serves a static application shell
-- Secrets are intended to remain in memory only while the vault is unlocked
+The security model is based on keeping plaintext vault data and encryption keys on the user's device rather than sending them to a centralized password-management service.
 
----
+The application is designed so that:
 
-## 🧠 Threat Model
+- Vault encryption and decryption occur client-side.
+- Persistent vault data is encrypted rather than stored as plaintext credentials.
+- Encryption keys remain in memory while the vault is unlocked and are cleared when the vault is locked.
+- Cryptographic and vault operations are performed in a Web Worker rather than on the main thread.
+- Exported backups contain encrypted vault data and require a separate export password.
+- Normal vault operation does not require a centralized backend service.
 
-### Intended protections
+The application does not attempt to eliminate all trust in the browser, operating system, application code, or self-hosting environment.
 
-This project aims to protect against:
+## Threat Model
 
-- Unauthorized access to stored credentials without the master password
-- Server-side data breaches (no sensitive data is stored server-side)
-- Passive network interception of secrets
+### Intended Protections
 
-### Not protected against
+The project is designed to reduce exposure to:
 
-This project does **not** protect against:
+- Unauthorized access to encrypted vault data without the required encryption keys.
+- Exposure of vault plaintext or encryption keys through a centralized password-management server.
+- Passive network interception of vault data during normal application use.
+- Unauthorized access to exported backup contents without the export password.
+- Unintended resurrection of deleted entries during multi-device merging through the use of deletion tombstones.
 
-- Compromised devices (malware, keyloggers, browser extensions)
-- Malicious or compromised browsers
-- Physical access to an unlocked device
-- Memory inspection or advanced runtime attacks
-- Supply chain attacks (e.g., tampered dependencies)
+These protections depend on the application being deployed and executed as intended.
 
----
+### Out of Scope
 
-## ⚠️ Known Trade-offs
+The security model does not provide protection against:
 
-- JavaScript environments do not provide guaranteed memory zeroization
-- Sensitive data may temporarily exist in memory while the vault is unlocked
-- Security depends on browser behavior and runtime isolation
+- A compromised operating system or device.
+- Malware or keyloggers.
+- Malicious or compromised browser extensions.
+- A compromised or malicious browser runtime.
+- Physical access to an unlocked device.
+- Runtime or memory inspection by an attacker with sufficient local privileges.
+- Compromised application code or deployment infrastructure.
+- Supply-chain compromise of the application's dependencies or build environment.
+- Loss or deliberate clearing of browser storage.
+- Vulnerabilities in the underlying browser, operating system, or cryptographic implementation.
 
----
+## Known Limitations
 
-## 📢 Reporting a Vulnerability
+### JavaScript Memory
 
-If you discover a security vulnerability, please **do not open a public issue**.
+JavaScript environments do not provide reliable guarantees that sensitive data can be completely zeroized from memory.
 
-Instead, report it privately via:
+Sensitive data may therefore remain in memory for some period while the vault is unlocked.
 
-- GitHub Issues (mark clearly as "SECURITY" and avoid sensitive details)
+### Web Worker Isolation
 
-Please include:
+Cryptographic and vault operations are performed in a Web Worker to separate them from the main UI thread.
 
-- A clear description of the issue
-- Steps to reproduce (if applicable)
-- Potential impact
+A Web Worker is **not considered a complete security boundary**. Code running within the same application context may still be able to interact with worker messages or otherwise compromise the application.
 
----
+### Browser Storage
 
-## 🔄 Updates and Fixes
+IndexedDB provides local persistence but should not be considered a backup mechanism.
 
-Security fixes will be addressed as time permits. There is no guaranteed response time.
+Browser storage can be cleared or lost because of:
 
----
+- User actions
+- Browser settings or policies
+- Private or incognito browsing
+- Browser profile changes
+- Device failure
+- Operating-system changes
+- Browser or application data removal
 
-## 📄 Disclaimer
+Independent encrypted backups should therefore be maintained for important vault data.
 
-This software is provided "as is", without warranty of any kind. The author is not responsible for any damages, data loss, or security breaches resulting from its use.
+### Application Integrity
+
+The security of a browser-based password manager ultimately depends on the integrity of the application code being executed.
+
+A compromised application, hosting environment, dependency, or deployment pipeline could potentially alter the code presented to the user.
+
+### Master-Password Recovery
+
+There is currently no master-password recovery mechanism.
+
+If the master password is lost, the encrypted vault cannot be recovered through the application.
+
+## Vulnerability Reporting
+
+If you discover a potential security vulnerability, please **do not open a public GitHub issue** or disclose sensitive vulnerability details publicly.
+
+Please use GitHub's **private vulnerability reporting** feature to submit the report.
+
+When reporting a vulnerability, please include:
+
+- A clear description of the issue.
+- Steps required to reproduce it, if applicable.
+- The affected component or functionality.
+- Potential security impact.
+- Any relevant proof-of-concept material that can be safely shared.
+
+Please do not include real credentials, private vault data, or other sensitive information that is not necessary to demonstrate the issue.
+
+I will investigate security reports and address confirmed issues as time permits. There is no guaranteed response time or service-level agreement.
+
+## Security Updates
+
+Security-related changes and fixes will be documented through the project's normal development history and release process where appropriate.
+
+## Disclaimer
+
+This software is provided "as is", without warranty of any kind.
+
+I make no guarantees regarding the security, availability, data preservation, or suitability of this software for protecting sensitive information.
+
+HandsoffPM is primarily an educational and personal project. Users are responsible for evaluating whether it is appropriate for their intended use and for maintaining independent encrypted backups of important data.

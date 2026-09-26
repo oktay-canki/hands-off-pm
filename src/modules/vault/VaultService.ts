@@ -2,6 +2,8 @@ import AppConfig from '@/app.config';
 import StorageService from '@/modules/storage/StorageService';
 import FailedToAddEntryError from '@/modules/vault/errors/FailedToAddEntryError';
 import FailedToDeleteEntryError from '@/modules/vault/errors/FailedToDeleteEntryError';
+import FailedToExportError from '@/modules/vault/errors/FailedToExportError';
+import FailedToImportError from '@/modules/vault/errors/FailedToImportError';
 import FailedToPersistLocallyError from '@/modules/vault/errors/FailedToPersistLocallyError';
 import FailedToRegisterError from '@/modules/vault/errors/FailedToRegisterError';
 import FailedToUpdateEntryError from '@/modules/vault/errors/FailedToUpdateEntryError';
@@ -12,7 +14,13 @@ import VaultNotFoundError from '@/modules/vault/errors/VaultNotFoundError';
 import VaultNotLoadedError from '@/modules/vault/errors/VaultNotLoadedError';
 import { InactivityWatcher } from '@/modules/vault/InactivityWatcher';
 import EncryptedVault from '@/modules/vault/types/EncryptedVault';
+import { MergeResult } from '@/modules/vault/types/MergeResult';
 import VaultEntry from '@/modules/vault/types/VaultEntry';
+import VaultItem from '@/modules/vault/types/VaultItem';
+import {
+  downloadExportFile,
+  parseExportFile,
+} from '@/modules/vault/utils/exportFile';
 import VaultWorkerApi from '@/modules/vault/vault.worker';
 import { releaseProxy, Remote, wrap } from 'comlink';
 
@@ -23,13 +31,14 @@ type VaultStatus = {
 };
 
 export type VaultSnapshot = {
+  userId: string | null;
   status: VaultStatus;
   entries: VaultEntry[];
 };
 
 type VaultEntryDraft = Omit<
   VaultEntry,
-  'itemId' | 'createdAt' | 'updatedAt' | 'type'
+  'itemId' | 'createdAt' | 'updatedAt' | 'type' | 'version' | 'deviceId'
 >;
 
 class VaultService {
@@ -45,6 +54,8 @@ class VaultService {
 
   private readonly inactivityWatcher: InactivityWatcher;
 
+  private deviceId: string | null = null;
+
   private status: VaultStatus = {
     isLocked: true,
     isLoading: false,
@@ -54,11 +65,12 @@ class VaultService {
   constructor() {
     this.storageService = new StorageService();
     this.currentSnapshot = {
+      userId: this.userId,
       status: { ...this.status },
       entries: [...this.cachedEntries],
     };
     this.inactivityWatcher = new InactivityWatcher({
-      timeoutMs: 5 * 60 * 1000,
+      timeoutMs: 10 * 60 * 1000, // 10 minutes
       onTimeout: () => this.lock(),
       onTick: (msRemaining) => {
         const totalSeconds = Math.ceil(msRemaining / 1000);
@@ -143,9 +155,14 @@ class VaultService {
     this.notify();
   }
 
-  clearUser() {
+  clearUser(): void {
     this.userId = null;
-    this.updateStatus({});
+    this.encryptedVault = null;
+    this.updateStatus({
+      isLocked: true,
+      isLoading: false,
+      error: null,
+    });
     this.notify();
   }
 
@@ -174,25 +191,28 @@ class VaultService {
     return this.workerApi.encryptVault();
   }
 
-  subscribe(listener: (snapshot: VaultSnapshot) => void): () => void {
+  subscribe = (listener: (snapshot: VaultSnapshot) => void): (() => void) => {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
-  }
+  };
 
-  getSnapshot(): VaultSnapshot {
+  getSnapshot = (): VaultSnapshot => {
     return this.currentSnapshot;
-  }
+  };
 
   private notify(): void {
     this.currentSnapshot = {
+      userId: this.userId,
       status: { ...this.status },
       entries: [...this.cachedEntries],
     };
+
     this.listeners.forEach((listener) => listener(this.currentSnapshot));
   }
 
   async addEntry(entry: VaultEntryDraft): Promise<void> {
     if (!this.workerApi) throw new VaultLockedError();
+    const deviceId = await this.getDeviceId();
     return this.enqueue(async () => {
       const item: VaultEntry = {
         ...entry,
@@ -200,6 +220,8 @@ class VaultService {
         type: 'entry',
         createdAt: Date.now(),
         updatedAt: Date.now(),
+        version: 1,
+        deviceId,
       };
       try {
         await this.workerApi!.addItem(item);
@@ -221,12 +243,20 @@ class VaultService {
     updates: Partial<VaultEntry>,
   ): Promise<void> {
     if (!this.workerApi) throw new VaultLockedError();
+    const deviceId = await this.getDeviceId();
     return this.enqueue(async () => {
       try {
         await this.workerApi!.updateItem(itemId, updates);
         this.cachedEntries = this.cachedEntries.map((e) =>
           e.itemId === itemId
-            ? { ...e, ...updates, itemId, updatedAt: Date.now() }
+            ? {
+                ...e,
+                ...updates,
+                itemId,
+                updatedAt: Date.now(),
+                version: e.version + 1,
+                deviceId,
+              }
             : e,
         );
         await this.persistVault();
@@ -244,15 +274,50 @@ class VaultService {
 
   async deleteEntry(itemId: string): Promise<void> {
     if (!this.workerApi) throw new VaultLockedError();
+
     return this.enqueue(async () => {
       try {
         await this.workerApi!.deleteEntry(itemId);
+
         this.cachedEntries = this.cachedEntries.filter(
-          (e) => e.itemId !== itemId,
+          (entry) => entry.itemId !== itemId,
         );
+
         await this.persistVault();
       } catch (e) {
         console.log(e);
+
+        const error = new FailedToDeleteEntryError();
+        this.updateStatus({ error });
+        throw error;
+      } finally {
+        this.notify();
+      }
+    });
+  }
+
+  async deleteEntries(itemIds: string[]): Promise<void> {
+    if (!this.workerApi) throw new VaultLockedError();
+    if (itemIds.length === 0) return;
+
+    return this.enqueue(async () => {
+      try {
+        await this.workerApi!.deleteEntries(itemIds);
+
+        const deletedIds = new Set(itemIds);
+
+        this.cachedEntries = this.cachedEntries.filter(
+          (entry) => !deletedIds.has(entry.itemId),
+        );
+
+        await this.persistVault();
+      } catch (e) {
+        console.log(e);
+
+        // Re-sync the cache with the worker in case the worker
+        // partially completed the operation before failing.
+        this.cachedEntries = await this.workerApi!.getEntries();
+
         const error = new FailedToDeleteEntryError();
         this.updateStatus({ error });
         throw error;
@@ -333,6 +398,75 @@ class VaultService {
 
   getUserId() {
     return this.userId;
+  }
+
+  private async getDeviceId(): Promise<string> {
+    if (!this.deviceId) {
+      this.deviceId = await this.storageService.getDeviceId();
+    }
+    return this.deviceId;
+  }
+
+  async exportVault(exportPassword: string): Promise<void> {
+    if (!this.workerApi) throw new VaultLockedError();
+    await this.mutationQueue; // let any in-flight mutation settle first
+    try {
+      const file = await this.workerApi.exportVault(exportPassword);
+      downloadExportFile(file);
+    } catch (e) {
+      console.log(e);
+      const error = new FailedToExportError();
+      this.updateStatus({ error });
+      throw error;
+    } finally {
+      this.notify();
+    }
+  }
+
+  async importVault(file: File, exportPassword: string): Promise<MergeResult> {
+    if (!this.workerApi) throw new VaultLockedError();
+    const exportFile = await parseExportFile(file);
+
+    return this.enqueue(async () => {
+      try {
+        const result = await this.workerApi!.importVault(
+          exportFile,
+          exportPassword,
+        );
+        this.cachedEntries = await this.workerApi!.getEntries();
+        await this.persistVault();
+        return result;
+      } catch (e) {
+        this.cachedEntries = await this.workerApi!.getEntries();
+        console.log(e);
+        const error = new FailedToImportError();
+        this.updateStatus({ error });
+        throw error;
+      } finally {
+        this.notify();
+      }
+    });
+  }
+
+  async resolveConflicts(items: VaultItem[]): Promise<void> {
+    if (!this.workerApi) throw new VaultLockedError();
+    if (items.length === 0) return;
+
+    return this.enqueue(async () => {
+      try {
+        await this.workerApi!.resolveConflicts(items);
+        this.cachedEntries = await this.workerApi!.getEntries();
+        await this.persistVault();
+      } catch (e) {
+        this.cachedEntries = await this.workerApi!.getEntries();
+        console.log(e);
+        const error = new FailedToUpdateEntryError();
+        this.updateStatus({ error });
+        throw error;
+      } finally {
+        this.notify();
+      }
+    });
   }
 }
 

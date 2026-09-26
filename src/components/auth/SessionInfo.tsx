@@ -1,24 +1,23 @@
 'use client';
 
-import LogoutButton from '@/components/auth/LogoutButton';
 import { useVault } from '@/context/VaultContext';
 import { CircleUserRound } from 'lucide-react';
 
-function SessionInfo() {
+export default function SessionInfo() {
   const vault = useVault();
+  const userId = vault.getUserId();
 
   return (
-    <div className="flex ml-auto mr-10 w-fit gap-2">
-      <div className="flex items-center justify-center gap-2 bg-surface text-background pr-4 rounded-lg">
-        <LogoutButton />
+    <div className="flex items-center gap-2">
+      <CircleUserRound
+        className="size-5 shrink-0 text-surface"
+        strokeWidth={1.5}
+        aria-hidden="true"
+      />
 
-        <div className="flex items-center justify-center gap-2 large-text">
-          <CircleUserRound size={24} strokeWidth={1} className="inline-block" />{' '}
-          {vault.getUserId() ?? 'none'}
-        </div>
-      </div>
+      <span className="body-text max-w-40 truncate text-surface/80">
+        {userId ?? 'No user'}
+      </span>
     </div>
   );
 }
-
-export default SessionInfo;

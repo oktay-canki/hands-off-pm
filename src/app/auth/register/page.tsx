@@ -1,23 +1,44 @@
+import Link from 'next/link';
 import Button from '@/components/common/Button';
 import RegisterForm from '@/components/forms/RegisterForm';
-import Link from 'next/link';
 
 export default function Register() {
   return (
-    <div className="w-full h-full flex items-center justify-center">
-      <div className="w-10/12 max-w-md mx-auto">
+    <main className="relative flex min-h-dvh w-full items-center justify-center">
+      <div className="w-full max-w-md px-6">
         <RegisterForm />
-        <div className="w-8/12 mx-auto flex items-center justify-center gap-4 my-12 px-2">
-          <div className="flex-1 bg-surface h-0.5"></div>
-          <div className="w-1 h-1 rounded-full bg-surface"></div>
-          <div className="flex-1 bg-surface h-0.5"></div>
-        </div>
-        <Link href="/auth/login">
-          <Button className="w-full" variant="accent-outline" size="lg">
+
+        <Link href="/auth/login" className="mt-8 block w-full">
+          <Button
+            type="button"
+            variant="accent-outline"
+            size="lg"
+            className="w-full"
+          >
             Unlock Vault
           </Button>
         </Link>
       </div>
-    </div>
+
+      <nav
+        className="absolute bottom-6 left-1/2 flex -translate-x-1/2 justify-center gap-2"
+        aria-label="Project resources"
+      >
+        <Link href="/docs/overview" className="link-text text-surface/60">
+          Documentation
+        </Link>
+
+        <span className="text-surface/40">·</span>
+
+        <a
+          href="https://github.com/oktay-canki/hands-off-pm"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="link-text text-surface/60"
+        >
+          Repository
+        </a>
+      </nav>
+    </main>
   );
 }

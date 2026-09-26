@@ -6,6 +6,7 @@ import ItemExistsError from '@/modules/vault/errors/ItemExistsError';
 import VaultLockedError from '@/modules/vault/errors/VaultLockedError';
 import EncryptedVault from '@/modules/vault/types/EncryptedVault';
 import EncryptedVaultItem from '@/modules/vault/types/EncryptedVaultItem';
+import { MergeResult } from '@/modules/vault/types/MergeResult';
 import Vault from '@/modules/vault/types/Vault';
 import VaultEntry from '@/modules/vault/types/VaultEntry';
 import VaultItem from '@/modules/vault/types/VaultItem';
@@ -20,6 +21,7 @@ class VaultEngine {
   constructor(
     private encryptedVault: EncryptedVault,
     private crypto: CryptoService,
+    private deviceId: string,
   ) {}
 
   async unlock(password: string) {
@@ -87,8 +89,14 @@ class VaultEngine {
     const itemExists = this.findItemById(item.itemId);
     if (itemExists) throw new ItemExistsError();
 
+    const stampedItem: VaultItem = {
+      ...item,
+      version: 1,
+      deviceId: this.deviceId,
+    };
+
     const encryptedItem = this.crypto.encryptItem(
-      item,
+      stampedItem,
       this.sessionKeys!.entryKey,
     );
 
@@ -119,6 +127,13 @@ class VaultEngine {
     return entry;
   }
 
+  getAllItems(): VaultItem[] {
+    this.assertUnlocked();
+    return this.vault!.items.map((item) =>
+      this.crypto.decryptItem(item, this.sessionKeys!.entryKey),
+    );
+  }
+
   updateItem(itemId: string, updates: Partial<VaultEntry>) {
     this.assertUnlocked();
 
@@ -131,7 +146,6 @@ class VaultEngine {
       this.sessionKeys!.entryKey,
     );
 
-    // Do NOT allow updating tombstones
     if (item.type === 'tombstone') {
       throw new ItemDeletedError();
     }
@@ -145,6 +159,8 @@ class VaultEngine {
       type: 'entry',
       createdAt: item.createdAt,
       updatedAt: now,
+      version: item.version + 1,
+      deviceId: this.deviceId,
     };
 
     const updatedEncryptedEntry = this.crypto.encryptItem(
@@ -173,6 +189,8 @@ class VaultEngine {
         itemId: encryptedItem.itemId,
         type: 'tombstone',
         deletedAt: now,
+        version: item.version + 1,
+        deviceId: this.deviceId,
       },
       this.sessionKeys!.entryKey,
     );
@@ -185,6 +203,79 @@ class VaultEngine {
     return this.vault!.items.find((e) => {
       return e.itemId === itemId;
     });
+  }
+
+  mergeItems(importedItems: VaultItem[]): MergeResult {
+    this.assertUnlocked();
+
+    const result: MergeResult = {
+      entries: { added: 0, updated: 0, skipped: 0 },
+      tombstones: { added: 0, updated: 0, skipped: 0 },
+      conflicts: [],
+    };
+
+    for (const incoming of importedItems) {
+      const bucket =
+        incoming.type === 'entry' ? result.entries : result.tombstones;
+
+      const index = this.vault!.items.findIndex(
+        (e) => e.itemId === incoming.itemId,
+      );
+
+      if (index === -1) {
+        const encrypted = this.crypto.encryptItem(
+          incoming,
+          this.sessionKeys!.entryKey,
+        );
+
+        this.vault!.items.push(encrypted);
+        bucket.added++;
+        continue;
+      }
+
+      const local = this.crypto.decryptItem(
+        this.vault!.items[index]!,
+        this.sessionKeys!.entryKey,
+      );
+
+      // Different devices → never automatically choose a version.
+      if (incoming.deviceId !== local.deviceId) {
+        result.conflicts.push({ local, incoming });
+        continue;
+      }
+
+      // Same device → version determines whether anything changed.
+      if (incoming.version > local.version) {
+        const encrypted = this.crypto.encryptItem(
+          incoming,
+          this.sessionKeys!.entryKey,
+        );
+
+        this.vault!.items[index] = encrypted;
+        bucket.updated++;
+      } else {
+        bucket.skipped++;
+      }
+    }
+
+    return result;
+  }
+
+  private acceptIncomingItem(item: VaultItem) {
+    this.assertUnlocked();
+
+    const index = this.vault!.items.findIndex((e) => e.itemId === item.itemId);
+    if (index === -1) throw new ItemDoesNotExistError();
+
+    const encrypted = this.crypto.encryptItem(item, this.sessionKeys!.entryKey);
+    this.vault!.items[index] = encrypted;
+  }
+
+  resolveConflicts(items: VaultItem[]) {
+    this.assertUnlocked();
+    for (const item of items) {
+      this.acceptIncomingItem(item);
+    }
   }
 }
 

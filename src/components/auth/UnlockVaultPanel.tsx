@@ -1,4 +1,5 @@
 'use client';
+
 import Button from '@/components/common/Button';
 import LoadUserForm from '@/components/forms/LoadUserForm';
 import UnlockVaultForm from '@/components/forms/UnlockVaultForm';
@@ -12,49 +13,52 @@ const UnlockVaultPanel = () => {
   const [isLoading, setIsLoading] = useState(false);
   const vaultService = useVault();
 
-  useSyncExternalStore(
-    (onStoreChange) => vaultService.subscribe(onStoreChange),
-    () => vaultService.getSnapshot(),
+  const snapshot = useSyncExternalStore(
+    vaultService.subscribe,
+    vaultService.getSnapshot,
     () => SERVER_SNAPSHOT,
   );
 
-  const username = vaultService.getUserId();
+  const username = snapshot.userId;
 
   async function loadUser(uname: string) {
-    if (!uname) return;
+    const normalizedUsername = uname.trim();
+
+    if (!normalizedUsername) return;
 
     setIsLoading(true);
+
     try {
-      const normalizedUsername = uname.trim();
       await vaultService.load(normalizedUsername);
     } catch (error) {
-      let msg = 'Failed to load vault';
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Failed to load vault';
 
-      if (error instanceof Error && error.message) msg = error.message;
-
-      toast.error(msg);
-      console.log(error);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
   }
 
-  async function unlockVault(username: string, masterPassword: string) {
-    if (!username || !masterPassword) {
-      toast.error("Username or masterpassword can't be empty");
+  async function unlockVault(_username: string, masterPassword: string) {
+    if (!masterPassword) {
+      toast.error("Master password can't be empty");
       return;
     }
 
     setIsLoading(true);
+
     try {
       await vaultService.unlock(masterPassword);
     } catch (error) {
-      let msg = 'Failed to unlock vault';
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Failed to unlock vault';
 
-      if (error instanceof Error && error.message) msg = error.message;
-
-      toast.error(msg);
-      console.log(error);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -68,30 +72,39 @@ const UnlockVaultPanel = () => {
     }
   }
 
-  if (!username)
+  if (!username) {
     return (
-      <>
+      <div className="flex w-full flex-col">
         <LoadUserForm onSubmit={loadUser} isLoading={isLoading} />
-        <div className="w-8/12 mx-auto flex items-center justify-center gap-4 my-12 px-2">
-          <div className="flex-1 bg-surface h-0.5"></div>
-          <div className="w-1 h-1 rounded-full bg-surface"></div>
-          <div className="flex-1 bg-surface h-0.5"></div>
-        </div>
-        <Link href="/auth/register">
-          <Button className="w-full" variant="accent-outline" size="lg">
-            Create Vault
+
+        <Link href="/auth/register" className="mt-6 self-center">
+          <Button variant="accent-outline" size="md">
+            Create a new vault
           </Button>
         </Link>
-      </>
+      </div>
     );
+  }
 
   return (
-    <UnlockVaultForm
-      username={username!}
-      onSubmit={unlockVault}
-      onSwitchUser={switchUser}
-      isLoading={isLoading}
-    />
+    <div className="flex w-full flex-col">
+      <UnlockVaultForm
+        username={username}
+        onSubmit={unlockVault}
+        isLoading={isLoading}
+      />
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={switchUser}
+        disabled={isLoading}
+        className="mt-4 self-center text-surface/60 hover:text-surface"
+      >
+        Switch user
+      </Button>
+    </div>
   );
 };
 

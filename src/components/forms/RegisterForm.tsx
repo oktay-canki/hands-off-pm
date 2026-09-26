@@ -1,84 +1,114 @@
 'use client';
+
+import Button from '@/components/common/Button';
+import ButtonLoader from '@/components/common/ButtonLoader';
+import Input from '@/components/common/Input';
 import PasswordInput from '@/components/common/PasswordInput';
 import { useVault } from '@/context/VaultContext';
 import { useState } from 'react';
-import ButtonLoader from '@/components/common/ButtonLoader';
-import Input from '@/components/common/Input';
-import Button from '@/components/common/Button';
 import { toast } from 'sonner';
 
 const RegisterForm = () => {
   const vaultService = useVault();
+
   const [username, setUsername] = useState('');
   const [masterPassword, setMasterPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  function clearFormFields() {
-    setUsername('');
-    setMasterPassword('');
-  }
-
   async function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
+
+    if (isLoading) return;
+
+    const trimmedUsername = username.trim();
+
+    if (!trimmedUsername || !masterPassword) {
+      toast.error('Username and master password are required.');
+      return;
+    }
+
     setIsLoading(true);
+
     try {
-      await register();
+      const exists = await vaultService.vaultExists(trimmedUsername);
+
+      if (exists) {
+        toast.error('A vault with this username already exists.');
+        return;
+      }
+
+      await vaultService.register(trimmedUsername, masterPassword);
+
+      setUsername('');
+      setMasterPassword('');
+
+      toast.success('Created a new vault');
+    } catch (error) {
+      console.error('Failed to create vault:', error);
+
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Failed to create new vault.';
+
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
   }
 
-  async function register() {
-    if (await vaultService.vaultExists(username)) {
-      toast.error('A vault with this username already exists');
-      return;
-    }
-
-    if (!username || !masterPassword) return;
-
-    try {
-      await vaultService.register(username.trim(), masterPassword);
-      clearFormFields();
-      toast.success('Created a new vault');
-    } catch (error) {
-      let msg = 'Failed to create new vault registry';
-      if (error instanceof Error && error.message) msg = error.message;
-
-      toast.error(msg);
-      console.log(error);
-    }
-  }
-
   return (
-    <form onSubmit={handleSubmit}>
-      <Input
-        placeholder="Username"
-        onChange={(e) => setUsername(e.target.value)}
-        value={username}
-        autoFocus={true}
-        variant="outline"
-        size="lg"
-        className="w-full text-center mb-4"
-        required
-      />
+    <form onSubmit={handleSubmit} className="flex w-full flex-col gap-5">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="register-username" className="text-sm font-medium">
+          Username
+        </label>
 
-      <PasswordInput
-        value={masterPassword}
-        onChange={(e) => setMasterPassword(e.target.value)}
-        variant="outline"
-        size="lg"
-        className="text-center"
-        containerClassName="mb-1"
-        placeholder="Master Password"
-        required
-        minLength={8}
-      />
-      <p className="text-accent small-text mb-8">
-        <strong>Important</strong>: Masterpassword is un-recoverable. Make sure
-        your masterpassword is a strong and hard to guess password.
-      </p>
+        <Input
+          id="register-username"
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Username"
+          autoComplete="username"
+          autoFocus
+          disabled={isLoading}
+          required
+          variant="outline"
+          size="lg"
+          className="w-full"
+        />
+      </div>
 
-      <Button type="submit" disabled={isLoading} size="lg" className="w-full">
+      <div className="flex flex-col gap-1.5">
+        <label
+          htmlFor="register-master-password"
+          className="text-sm font-medium"
+        >
+          Master Password
+        </label>
+
+        <PasswordInput
+          id="register-master-password"
+          value={masterPassword}
+          onChange={(e) => setMasterPassword(e.target.value)}
+          placeholder="Master Password"
+          autoComplete="new-password"
+          disabled={isLoading}
+          required
+          minLength={8}
+          variant="outline"
+          size="lg"
+          className="w-full"
+        />
+
+        <p className="small-text mt-1 text-accent">
+          <strong>Important:</strong> Your master password cannot be recovered.
+          Make sure it is strong and difficult to guess.
+        </p>
+      </div>
+
+      <Button type="submit" disabled={isLoading} size="lg" className=" w-full">
         {isLoading ? <ButtonLoader /> : 'Create Vault'}
       </Button>
     </form>

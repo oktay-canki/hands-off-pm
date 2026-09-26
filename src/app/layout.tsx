@@ -19,7 +19,7 @@ export default function RootLayout({
       <body>
         <VaultProvider>
           {children}
-          <Toaster richColors position="top-right" />
+          <Toaster position="bottom-right" />
         </VaultProvider>
       </body>
     </html>
